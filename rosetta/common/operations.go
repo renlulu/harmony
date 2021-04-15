@@ -23,6 +23,21 @@ const (
 	// NativeCrossShardTransferOperation is an operation that only affects the native currency.
 	NativeCrossShardTransferOperation = "NativeCrossShardTransfer"
 
+	// CreateValidatorOperation is an operation that only affects the native currency.
+	CreateValidatorOperation = "CreateValidator"
+
+	// EditValidatorOperation is an operation that only affects the native currency.
+	EditValidatorOperation = "EditValidator"
+
+	// DelegateOperation is an operation that only affects the native currency.
+	DelegateOperation = "Delegate"
+
+	// UndelegateOperation is an operation that only affects the native currency.
+	UndelegateOperation = "Undelegate"
+
+	// CollectRewardOperation is an operation that only affects the native currency.
+	CollectRewardOperation = "CollectReward"
+
 	// GenesisFundsOperation is a side effect operation for genesis block only.
 	// Note that no transaction can be constructed with this operation.
 	GenesisFundsOperation = "Genesis"
