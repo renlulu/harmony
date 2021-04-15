@@ -61,6 +61,16 @@ func GetOperationComponents(
 		return getCrossShardOperationComponents(operations[0])
 	case common.ContractCreationOperation:
 		return getContractCreationOperationComponents(operations[0])
+	case common.CreateValidatorOperation:
+		return getCreateValidatorOperationComponents(operations[0])
+	case common.EditValidatorOperation:
+		return getEditValidatorOperationComponents(operations[0])
+	case common.DelegateOperation:
+		return getDelegateOperationComponents(operations[0])
+	case common.UndelegateOperation:
+		return getUndelegateOperationComponents(operations[0])
+	case common.CollectRewardOperation:
+		return getCollectRewardsOperationComponents(operations[0])
 	default:
 		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
 			"message": fmt.Sprintf("%v is unsupported or invalid operation type", operations[0].Type),
@@ -231,5 +241,186 @@ func getContractCreationOperationComponents(
 			"message": "operation must have account sender/from identifier for contract creation",
 		})
 	}
+	return components, nil
+}
+
+func getCreateValidatorOperationComponents(
+	operation *types.Operation,
+) (*OperationComponents, *types.Error) {
+	if operation == nil {
+		return nil, common.NewError(common.CatchAllError, map[string]interface{}{
+			"message": "nil operation",
+		})
+	}
+	metadata := common.CreateValidatorOperationMetadata{}
+	if err := metadata.UnmarshalFromInterface(operation.Metadata); err != nil {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": errors.WithMessage(err, "invalid metadata").Error(),
+		})
+	}
+	if metadata.ValidatorAddress == "" {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": "validator address must not be empty",
+		})
+	}
+	if metadata.CommissionRate == nil || metadata.MaxCommissionRate == nil || metadata.MaxChangeRate == nil {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": "commission rate & max commission rate & max change rate must not be nil",
+		})
+	}
+	if metadata.MinSelfDelegation == nil || metadata.MaxTotalDelegation == nil {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": "min self delegation & max total delegation much not be nil",
+		})
+	}
+	if metadata.Amount == nil {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": "amount must not be nil",
+		})
+	}
+	if metadata.Name == "" || metadata.Website == "" || metadata.Identity == "" ||
+		metadata.SecurityContact == "" || metadata.Details == "" {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": "name & website & identity & security contract & details must no be empty",
+		})
+	}
+
+	if len(metadata.SlotPubKeys) == 0 {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": "invalid slot public key number",
+		})
+	}
+
+	components := &OperationComponents{
+		Type:           operation.Type,
+		From:           operation.Account,
+		StakingMessage: metadata,
+	}
+
+	return components, nil
+
+}
+
+func getEditValidatorOperationComponents(
+	operation *types.Operation,
+) (*OperationComponents, *types.Error) {
+	if operation == nil {
+		return nil, common.NewError(common.CatchAllError, map[string]interface{}{
+			"message": "nil operation",
+		})
+	}
+	metadata := common.EditValidatorOperationMetadata{}
+	if err := metadata.UnmarshalFromInterface(operation.Metadata); err != nil {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": errors.WithMessage(err, "invalid metadata").Error(),
+		})
+	}
+	if metadata.ValidatorAddress == "" {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": "validator address must not be empty",
+		})
+	}
+	if metadata.CommissionRate == nil || metadata.MinSelfDelegation == nil || metadata.MaxTotalDelegation == nil {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": "commission rate & max commission rate & max change rate must not be nil",
+		})
+	}
+	if metadata.Name == "" || metadata.Website == "" || metadata.Identity == "" ||
+		metadata.SecurityContact == "" || metadata.Details == "" {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": "name & website & identity & security contract & details must no be empty",
+		})
+	}
+	if metadata.SlotPubKeyToAdd == nil || metadata.SlotPubKeyToRemove == nil {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": "slot public key to add and to remove must no be empty",
+		})
+	}
+
+	components := &OperationComponents{
+		Type:           operation.Type,
+		From:           operation.Account,
+		StakingMessage: metadata,
+	}
+
+	return components, nil
+
+}
+
+func getDelegateOperationComponents(
+	operation *types.Operation,
+) (*OperationComponents, *types.Error) {
+	if operation == nil {
+		return nil, common.NewError(common.CatchAllError, map[string]interface{}{
+			"message": "nil operation",
+		})
+	}
+	metadata := common.DelegateOperationMetadata{}
+	if err := metadata.UnmarshalFromInterface(operation.Metadata); err != nil {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": errors.WithMessage(err, "invalid metadata").Error(),
+		})
+	}
+
+	// validator and delegator and amount already got checked inside UnmarshalFromInterface
+	components := &OperationComponents{
+		Type:           operation.Type,
+		From:           operation.Account,
+		StakingMessage: metadata,
+	}
+
+	return components, nil
+
+}
+
+func getUndelegateOperationComponents(
+	operation *types.Operation,
+) (*OperationComponents, *types.Error) {
+	if operation == nil {
+		return nil, common.NewError(common.CatchAllError, map[string]interface{}{
+			"message": "nil operation",
+		})
+	}
+	metadata := common.UndelegateOperationMetadata{}
+	if err := metadata.UnmarshalFromInterface(operation.Metadata); err != nil {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": errors.WithMessage(err, "invalid metadata").Error(),
+		})
+	}
+
+	// validator and delegator and amount already got checked inside UnmarshalFromInterface
+	components := &OperationComponents{
+		Type:           operation.Type,
+		From:           operation.Account,
+		StakingMessage: metadata,
+	}
+
+	return components, nil
+
+}
+
+func getCollectRewardsOperationComponents(
+	operation *types.Operation,
+) (*OperationComponents, *types.Error) {
+	if operation == nil {
+		return nil, common.NewError(common.CatchAllError, map[string]interface{}{
+			"message": "nil operation",
+		})
+	}
+	metadata := common.CollectRewardsMetadata{}
+	if err := metadata.UnmarshalFromInterface(operation.Metadata); err != nil {
+		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
+			"message": errors.WithMessage(err, "invalid metadata").Error(),
+		})
+	}
+
+	//delegator already got checked inside UnmarshalFromInterface
+
+	components := &OperationComponents{
+		Type:           operation.Type,
+		From:           operation.Account,
+		StakingMessage: metadata,
+	}
+
 	return components, nil
 }

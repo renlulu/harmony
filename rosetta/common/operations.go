@@ -137,3 +137,77 @@ func (s *CrossShardTransactionOperationMetadata) UnmarshalFromInterface(data int
 	*s = T
 	return nil
 }
+
+func (s *CreateValidatorOperationMetadata) UnmarshalFromInterface(data interface{}) error {
+	var T CreateValidatorOperationMetadata
+	dat, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(dat, &T); err != nil {
+		return err
+	}
+	*s = T
+	return nil
+}
+
+func (s *EditValidatorOperationMetadata) UnmarshalFromInterface(data interface{}) error {
+	var T EditValidatorOperationMetadata
+	dat, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(dat, &T); err != nil {
+		return err
+	}
+	*s = T
+	return nil
+}
+
+func (s *DelegateOperationMetadata) UnmarshalFromInterface(data interface{}) error {
+	var T DelegateOperationMetadata
+	dat, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(dat, &T); err != nil {
+		return err
+	}
+	if T.Amount == nil || T.ValidatorAddress == "" || T.DelegatorAddress == "" {
+		return fmt.Errorf("expected validator address & delegator address & amount be present for CrossShardTransactionOperationMetadata")
+	}
+	*s = T
+	return nil
+}
+
+func (s *UndelegateOperationMetadata) UnmarshalFromInterface(data interface{}) error {
+	var T UndelegateOperationMetadata
+	dat, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(dat, &T); err != nil {
+		return err
+	}
+	if T.Amount == nil || T.ValidatorAddress == "" || T.DelegatorAddress == "" {
+		return fmt.Errorf("expected validator address & delegator address & amount be present for CrossShardTransactionOperationMetadata")
+	}
+	*s = T
+	return nil
+}
+
+func (s *CollectRewardsMetadata) UnmarshalFromInterface(data interface{}) error {
+	var T CollectRewardsMetadata
+	dat, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(dat, &T); err != nil {
+		return err
+	}
+	if T.DelegatorAddress == "" {
+		return fmt.Errorf("expected validator address be present for CrossShardTransactionOperationMetadata")
+	}
+	*s = T
+	return nil
+}
