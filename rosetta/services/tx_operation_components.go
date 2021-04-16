@@ -38,7 +38,6 @@ func (s *OperationComponents) IsStaking() bool {
 // Providing a gas expenditure operation is INVALID.
 // All staking & cross-shard operations require metadata matching the operation type to be a valid.
 // All other operations do not require metadata.
-// TODO (dm): implement staking transaction construction
 func GetOperationComponents(
 	operations []*types.Operation,
 ) (*OperationComponents, *types.Error) {
@@ -285,11 +284,9 @@ func getCreateValidatorOperationComponents(
 		})
 	}
 
-	if len(metadata.SlotPubKeys) == 0 {
-		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
-			"message": "invalid slot public key number",
-		})
-	}
+	// slot public key would be add into
+	// https://github.com/harmony-one/harmony/blob/3a8125666817149eaf9cea7870735e26cfe49c87/rosetta/services/tx_construction.go#L16
+	// see https://github.com/harmony-one/harmony/issues/3431
 
 	components := &OperationComponents{
 		Type:           operation.Type,

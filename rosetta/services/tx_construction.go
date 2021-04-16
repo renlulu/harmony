@@ -22,6 +22,10 @@ type TransactionMetadata struct {
 	ContractAccountIdentifier *types.AccountIdentifier `json:"contract_account_identifier,omitempty"`
 	Data                      *string                  `json:"data,omitempty"`
 	Logs                      []*hmyTypes.Log          `json:"logs,omitempty"`
+	// SlotPubKeys SlotPubKeyToAdd SlotPubKeyToRemove are all hex representation of bls public key
+	SlotPubKeys        []string `json:"slot_pub_keys,omitempty"`
+	SlotPubKeyToAdd    string   `json:"slot_pub_key_to_add,omitempty"`
+	SlotPubKeyToRemove string   `json:"slot_pub_key_to_remove,omitempty"`
 }
 
 // UnmarshalFromInterface ..

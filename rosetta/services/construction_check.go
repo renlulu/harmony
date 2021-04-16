@@ -75,6 +75,11 @@ func (s *ConstructAPI) ConstructionPreprocess(
 			"message": "sender address is not found for given operations",
 		})
 	}
+	if request.Operations[0].Type == common.CreateValidatorOperation && len(txMetadata.SlotPubKeys) == 0 {
+		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+			"message": "invalid slot public keys",
+		})
+	}
 	if txMetadata.ToShardID != nil && txMetadata.FromShardID != nil &&
 		components.Type != common.NativeCrossShardTransferOperation && *txMetadata.ToShardID != *txMetadata.FromShardID {
 		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/harmony-one/harmony/crypto/bls"
 	"math/big"
 	"testing"
 
@@ -488,6 +489,53 @@ func TestGetTransferOperationComponents(t *testing.T) {
 	if rosettaError == nil {
 		t.Error("expected error")
 	}
+}
+
+func TestCreateValidatorOperationComponents(t *testing.T) {
+	refFromKey := internalCommon.MustGeneratePrivateKey()
+	refFrom, rosettaError := newAccountIdentifier(crypto.PubkeyToAddress(refFromKey.PublicKey))
+	if rosettaError != nil {
+		t.Fatal(rosettaError)
+	}
+	validatorKey := internalCommon.MustGeneratePrivateKey()
+	validatorAddr := crypto.PubkeyToAddress(validatorKey.PublicKey)
+	blsKey := bls.RandPrivateKey()
+	var serializedPubKey bls.SerializedPublicKey
+	copy(serializedPubKey[:], blsKey.GetPublicKey().Serialize())
+	// test valid operations
+	refOperations := &types.Operation{
+		OperationIdentifier: &types.OperationIdentifier{
+			Index: 0,
+		},
+		Type:    common.CreateValidatorOperation,
+		Account: refFrom,
+		Metadata: map[string]interface{}{
+			"validatorAddress":   validatorAddr,
+			"commissionRate":     new(big.Int).SetInt64(10),
+			"maxCommissionRate":  new(big.Int).SetInt64(90),
+			"maxChangeRate":      new(big.Int).SetInt64(2),
+			"minSelfDelegation":  new(big.Int).SetInt64(10000),
+			"maxTotalDelegation": new(big.Int).SetInt64(10000000),
+			"amount":             new(big.Int).SetInt64(100000),
+			"name":               "Test validator",
+			"website":            "https://test.website.com",
+			"identity":           "test identity",
+			"securityContact":    "security contact",
+			"details":            "test detail",
+		},
+	}
+
+	testComponents, rosettaError := getCreateValidatorOperationComponents(refOperations)
+	if rosettaError != nil {
+		t.Fatal(rosettaError)
+	}
+	if testComponents.Type != refOperations.Type {
+		t.Error("expected same operation")
+	}
+	if testComponents.From == nil || types.Hash(testComponents.From) != types.Hash(refFrom) {
+		t.Error("expect same sender")
+	}
+
 }
 
 func TestGetOperationComponents(t *testing.T) {
