@@ -294,6 +294,12 @@ func getCreateValidatorOperationComponents(
 		StakingMessage: metadata,
 	}
 
+	if components.From == nil {
+		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+			"message": "operation must have account sender/from identifier for creating validator",
+		})
+	}
+
 	return components, nil
 
 }
@@ -340,6 +346,12 @@ func getEditValidatorOperationComponents(
 		StakingMessage: metadata,
 	}
 
+	if components.From == nil {
+		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+			"message": "operation must have account sender/from identifier for editing validator",
+		})
+	}
+
 	return components, nil
 
 }
@@ -364,6 +376,12 @@ func getDelegateOperationComponents(
 		Type:           operation.Type,
 		From:           operation.Account,
 		StakingMessage: metadata,
+	}
+
+	if components.From == nil {
+		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+			"message": "operation must have account sender/from identifier for delegating",
+		})
 	}
 
 	return components, nil
@@ -392,6 +410,12 @@ func getUndelegateOperationComponents(
 		StakingMessage: metadata,
 	}
 
+	if components.From == nil {
+		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+			"message": "operation must have account sender/from identifier for undelegating",
+		})
+	}
+
 	return components, nil
 
 }
@@ -417,6 +441,12 @@ func getCollectRewardsOperationComponents(
 		Type:           operation.Type,
 		From:           operation.Account,
 		StakingMessage: metadata,
+	}
+
+	if components.From == nil {
+		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+			"message": "operation must have account sender/from identifier for collecting rewards",
+		})
 	}
 
 	return components, nil

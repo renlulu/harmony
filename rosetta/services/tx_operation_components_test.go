@@ -502,6 +502,7 @@ func TestCreateValidatorOperationComponents(t *testing.T) {
 	blsKey := bls.RandPrivateKey()
 	var serializedPubKey bls.SerializedPublicKey
 	copy(serializedPubKey[:], blsKey.GetPublicKey().Serialize())
+
 	// test valid operations
 	refOperations := &types.Operation{
 		OperationIdentifier: &types.OperationIdentifier{
@@ -533,9 +534,44 @@ func TestCreateValidatorOperationComponents(t *testing.T) {
 		t.Error("expected same operation")
 	}
 	if testComponents.From == nil || types.Hash(testComponents.From) != types.Hash(refFrom) {
-		t.Error("expect same sender")
+		t.Error("expected same sender")
+	}
+	if testComponents.Amount != nil {
+		t.Error("expected nil amount")
+	}
+	if testComponents.To != nil {
+		t.Error("expected nil to ")
 	}
 
+	// test invalid operation
+
+	// test nil account
+	refOperations = &types.Operation{
+		OperationIdentifier: &types.OperationIdentifier{
+			Index: 0,
+		},
+		Type:    common.CreateValidatorOperation,
+		Account: nil,
+		Metadata: map[string]interface{}{
+			"validatorAddress":   validatorAddr,
+			"commissionRate":     new(big.Int).SetInt64(10),
+			"maxCommissionRate":  new(big.Int).SetInt64(90),
+			"maxChangeRate":      new(big.Int).SetInt64(2),
+			"minSelfDelegation":  new(big.Int).SetInt64(10000),
+			"maxTotalDelegation": new(big.Int).SetInt64(10000000),
+			"amount":             new(big.Int).SetInt64(100000),
+			"name":               "Test validator",
+			"website":            "https://test.website.com",
+			"identity":           "test identity",
+			"securityContact":    "security contact",
+			"details":            "test detail",
+		},
+	}
+
+	_, rosettaError = getCreateValidatorOperationComponents(refOperations)
+	if rosettaError == nil {
+		t.Error("expected error")
+	}
 }
 
 func TestGetOperationComponents(t *testing.T) {
