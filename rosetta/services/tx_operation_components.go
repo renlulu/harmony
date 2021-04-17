@@ -70,7 +70,7 @@ func GetOperationComponents(
 		return getDelegateOperationComponents(operations[0])
 	case common.UndelegateOperation:
 		return getUndelegateOperationComponents(operations[0])
-	case common.CollectRewardOperation:
+	case common.CollectRewardsOperation:
 		return getCollectRewardsOperationComponents(operations[0])
 	default:
 		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{

@@ -37,8 +37,8 @@ const (
 	// UndelegateOperation is an operation that only affects the native currency.
 	UndelegateOperation = "Undelegate"
 
-	// CollectRewardOperation is an operation that only affects the native currency.
-	CollectRewardOperation = "CollectReward"
+	// CollectRewardsOperation is an operation that only affects the native currency.
+	CollectRewardsOperation = "CollectRewards"
 
 	// GenesisFundsOperation is a side effect operation for genesis block only.
 	// Note that no transaction can be constructed with this operation.
