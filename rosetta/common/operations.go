@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/harmony-one/harmony/internal/common"
+
 	"github.com/coinbase/rosetta-sdk-go/types"
 
 	rpcV2 "github.com/harmony-one/harmony/rpc/v2"
@@ -176,6 +178,11 @@ func (s *DelegateOperationMetadata) UnmarshalFromInterface(data interface{}) err
 	if T.Amount == nil || T.ValidatorAddress == "" || T.DelegatorAddress == "" {
 		return fmt.Errorf("expected validator address & delegator address & amount be present for DelegateOperationMetadata")
 	}
+
+	if !common.IsBech32Address(T.ValidatorAddress) || !common.IsBech32Address(T.DelegatorAddress) {
+		return fmt.Errorf("expected validator address & delegator address to be bech32 format for DelegateOperationMetadata")
+	}
+
 	*s = T
 	return nil
 }
@@ -189,9 +196,15 @@ func (s *UndelegateOperationMetadata) UnmarshalFromInterface(data interface{}) e
 	if err := json.Unmarshal(dat, &T); err != nil {
 		return err
 	}
+
 	if T.Amount == nil || T.ValidatorAddress == "" || T.DelegatorAddress == "" {
 		return fmt.Errorf("expected validator address & delegator address & amount be present for UndelegateOperationMetadata")
 	}
+
+	if !common.IsBech32Address(T.ValidatorAddress) || !common.IsBech32Address(T.DelegatorAddress) {
+		return fmt.Errorf("expected validator address & delegator address to be bech32 format for UndelegateOperationMetadata")
+	}
+
 	*s = T
 	return nil
 }
@@ -207,6 +220,9 @@ func (s *CollectRewardsMetadata) UnmarshalFromInterface(data interface{}) error 
 	}
 	if T.DelegatorAddress == "" {
 		return fmt.Errorf("expected delegator address be present for CollectRewardsMetadata")
+	}
+	if !common.IsBech32Address(T.DelegatorAddress) {
+		return fmt.Errorf("expected delegator address to be bech32 format for CollectRewardsMetadata")
 	}
 	*s = T
 	return nil

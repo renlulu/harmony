@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
+	common2 "github.com/harmony-one/harmony/internal/common"
+
 	"github.com/coinbase/rosetta-sdk-go/types"
 
 	"github.com/harmony-one/harmony/rosetta/common"
@@ -257,9 +259,9 @@ func getCreateValidatorOperationComponents(
 			"message": errors.WithMessage(err, "invalid metadata").Error(),
 		})
 	}
-	if metadata.ValidatorAddress == "" {
+	if metadata.ValidatorAddress == "" || !common2.IsBech32Address(metadata.ValidatorAddress) {
 		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
-			"message": "validator address must not be empty",
+			"message": "validator address must not be empty or wrong format",
 		})
 	}
 	if metadata.CommissionRate == nil || metadata.MaxCommissionRate == nil || metadata.MaxChangeRate == nil {
@@ -318,9 +320,9 @@ func getEditValidatorOperationComponents(
 			"message": errors.WithMessage(err, "invalid metadata").Error(),
 		})
 	}
-	if metadata.ValidatorAddress == "" {
+	if metadata.ValidatorAddress == "" || !common2.IsBech32Address(metadata.ValidatorAddress) {
 		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
-			"message": "validator address must not be empty",
+			"message": "validator address must not be empty or wrong format",
 		})
 	}
 	if metadata.CommissionRate == nil || metadata.MinSelfDelegation == nil || metadata.MaxTotalDelegation == nil {
