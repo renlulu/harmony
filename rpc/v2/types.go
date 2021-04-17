@@ -2,9 +2,10 @@ package v2
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"math/big"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
