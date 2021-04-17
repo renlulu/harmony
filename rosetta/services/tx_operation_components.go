@@ -334,11 +334,6 @@ func getEditValidatorOperationComponents(
 			"message": "name & website & identity & security contract & details must no be empty",
 		})
 	}
-	if metadata.SlotPubKeyToAdd == nil || metadata.SlotPubKeyToRemove == nil {
-		return nil, common.NewError(common.InvalidStakingConstructionError, map[string]interface{}{
-			"message": "slot public key to add and to remove must no be empty",
-		})
-	}
 
 	components := &OperationComponents{
 		Type:           operation.Type,

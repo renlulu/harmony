@@ -174,7 +174,7 @@ func (s *DelegateOperationMetadata) UnmarshalFromInterface(data interface{}) err
 		return err
 	}
 	if T.Amount == nil || T.ValidatorAddress == "" || T.DelegatorAddress == "" {
-		return fmt.Errorf("expected validator address & delegator address & amount be present for CrossShardTransactionOperationMetadata")
+		return fmt.Errorf("expected validator address & delegator address & amount be present for DelegateOperationMetadata")
 	}
 	*s = T
 	return nil
@@ -190,7 +190,7 @@ func (s *UndelegateOperationMetadata) UnmarshalFromInterface(data interface{}) e
 		return err
 	}
 	if T.Amount == nil || T.ValidatorAddress == "" || T.DelegatorAddress == "" {
-		return fmt.Errorf("expected validator address & delegator address & amount be present for CrossShardTransactionOperationMetadata")
+		return fmt.Errorf("expected validator address & delegator address & amount be present for UndelegateOperationMetadata")
 	}
 	*s = T
 	return nil
@@ -206,7 +206,7 @@ func (s *CollectRewardsMetadata) UnmarshalFromInterface(data interface{}) error 
 		return err
 	}
 	if T.DelegatorAddress == "" {
-		return fmt.Errorf("expected validator address be present for CrossShardTransactionOperationMetadata")
+		return fmt.Errorf("expected delegator address be present for CollectRewardsMetadata")
 	}
 	*s = T
 	return nil
