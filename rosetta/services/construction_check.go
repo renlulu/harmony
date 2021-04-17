@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/harmony-one/harmony/core"
 	"math/big"
+
+	"github.com/harmony-one/harmony/core"
 
 	"github.com/coinbase/rosetta-sdk-go/types"
 	ethCommon "github.com/ethereum/go-ethereum/common"
@@ -228,8 +229,8 @@ func (s *ConstructAPI) ConstructionMetadata(
 			)
 		}
 	} else {
-		estGasUsed,err = core.IntrinsicGas(data,false,false,
-			false,options.OperationType == common.CreateValidatorOperation)
+		estGasUsed, err = core.IntrinsicGas(data, false, false,
+			false, options.OperationType == common.CreateValidatorOperation)
 
 	}
 	if err != nil {
