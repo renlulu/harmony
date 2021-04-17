@@ -74,7 +74,7 @@ func GetNativeOperationsFromTransaction(
 // GetNativeOperationsFromStakingTransaction for all staking directives
 // Note that only native token operations can come from staking transactions.
 func GetNativeOperationsFromStakingTransaction(
-	tx *stakingTypes.StakingTransaction, receipt *hmytypes.Receipt,
+	tx *stakingTypes.StakingTransaction, receipt *hmytypes.Receipt, signed bool,
 ) ([]*types.Operation, *types.Error) {
 	senderAddress, err := tx.SenderAddress()
 	if err != nil {
@@ -90,7 +90,7 @@ func GetNativeOperationsFromStakingTransaction(
 	gasOperations := newNativeOperationsWithGas(gasExpended, accountID)
 
 	// Format staking message for metadata using decimal numbers (hence usage of rpcV2)
-	rpcStakingTx, err := rpcV2.NewStakingTransaction(tx, ethcommon.Hash{}, 0, 0, 0)
+	rpcStakingTx, err := rpcV2.NewStakingTransaction(tx, ethcommon.Hash{}, 0, 0, 0, signed)
 	if err != nil {
 		return nil, common.NewError(common.CatchAllError, map[string]interface{}{
 			"message": err.Error(),

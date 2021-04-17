@@ -30,7 +30,7 @@ type ContractInfo struct {
 
 // FormatTransaction for staking, cross-shard sender, and plain transactions
 func FormatTransaction(
-	tx hmytypes.PoolTransaction, receipt *hmytypes.Receipt, contractInfo *ContractInfo,
+	tx hmytypes.PoolTransaction, receipt *hmytypes.Receipt, contractInfo *ContractInfo, signed bool,
 ) (fmtTx *types.Transaction, rosettaError *types.Error) {
 	var operations []*types.Operation
 	var isCrossShard, isStaking, isContractCreation bool
@@ -40,7 +40,7 @@ func FormatTransaction(
 	case *stakingTypes.StakingTransaction:
 		isStaking = true
 		stakingTx := tx.(*stakingTypes.StakingTransaction)
-		operations, rosettaError = GetNativeOperationsFromStakingTransaction(stakingTx, receipt)
+		operations, rosettaError = GetNativeOperationsFromStakingTransaction(stakingTx, receipt, signed)
 		if rosettaError != nil {
 			return nil, rosettaError
 		}
