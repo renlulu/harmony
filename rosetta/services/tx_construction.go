@@ -6,6 +6,11 @@ import (
 
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/harmony-one/harmony/crypto/bls"
+	common2 "github.com/harmony-one/harmony/internal/common"
+	"github.com/harmony-one/harmony/numeric"
+	v2 "github.com/harmony-one/harmony/rpc/v2"
+	types2 "github.com/harmony-one/harmony/staking/types"
 	"github.com/pkg/errors"
 
 	hmyTypes "github.com/harmony-one/harmony/core/types"
@@ -43,7 +48,6 @@ func (t *TransactionMetadata) UnmarshalFromInterface(metaData interface{}) error
 }
 
 // ConstructTransaction object (unsigned).
-// TODO (dm): implement staking transaction construction
 func ConstructTransaction(
 	components *OperationComponents, metadata *ConstructMetadata, sourceShardID uint32,
 ) (response hmyTypes.PoolTransaction, rosettaError *types.Error) {
@@ -71,6 +75,10 @@ func ConstructTransaction(
 		}
 	case common.NativeTransferOperation:
 		if tx, rosettaError = constructPlainTransaction(components, metadata, sourceShardID); rosettaError != nil {
+			return nil, rosettaError
+		}
+	case common.CreateValidatorOperation:
+		if tx, rosettaError = constructCreateValidatorTransaction(components, metadata); rosettaError != nil {
 			return nil, rosettaError
 		}
 	default:
@@ -143,6 +151,60 @@ func constructContractCreationTransaction(
 	return hmyTypes.NewContractCreation(
 		metadata.Nonce, sourceShardID, components.Amount, metadata.GasLimit, metadata.GasPrice, data,
 	), nil
+}
+
+func constructCreateValidatorTransaction(
+	components *OperationComponents, metadata *ConstructMetadata,
+) (hmyTypes.PoolTransaction, *types.Error) {
+	createValidatorMsg := components.StakingMessage.(v2.CreateValidatorMsg)
+	validatorAddr, err := common2.Bech32ToAddress(createValidatorMsg.ValidatorAddress)
+	if err != nil {
+		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+			"message": errors.WithMessage(err, "convert validator address error").Error(),
+		})
+	}
+	var slotPubKeys []bls.SerializedPublicKey
+	for _, slotPubKey := range metadata.Transaction.SlotPubKeys {
+		var pubKey bls.SerializedPublicKey
+		key, err := hexutil.Decode(slotPubKey)
+		if err != nil {
+			return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+				"message": errors.WithMessage(err, "decode slot public key error").Error(),
+			})
+		}
+		copy(pubKey[:], key)
+		slotPubKeys = append(slotPubKeys, pubKey)
+	}
+	stakePayloadMaker := func() (types2.Directive, interface{}) {
+		return types2.DirectiveCreateValidator, types2.CreateValidator{
+			Description: types2.Description{
+				Name:            createValidatorMsg.Name,
+				Identity:        createValidatorMsg.Identity,
+				Website:         createValidatorMsg.Website,
+				SecurityContact: createValidatorMsg.SecurityContact,
+				Details:         createValidatorMsg.Details,
+			},
+			CommissionRates: types2.CommissionRates{
+				Rate:          numeric.Dec{createValidatorMsg.CommissionRate},
+				MaxRate:       numeric.Dec{createValidatorMsg.MaxCommissionRate},
+				MaxChangeRate: numeric.Dec{createValidatorMsg.MaxChangeRate},
+			},
+			MinSelfDelegation:  createValidatorMsg.MinSelfDelegation,
+			MaxTotalDelegation: createValidatorMsg.MaxTotalDelegation,
+			ValidatorAddress:   validatorAddr,
+			SlotPubKeys:        slotPubKeys,
+			Amount:             createValidatorMsg.Amount,
+		}
+	}
+
+	stakingTransaction, err := types2.NewStakingTransaction(metadata.Nonce, metadata.GasLimit, metadata.GasPrice, stakePayloadMaker)
+	if err != nil {
+		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+			"message": errors.WithMessage(err, "new staking transaction error").Error(),
+		})
+	}
+
+	return stakingTransaction, nil
 }
 
 // constructPlainTransaction ..
