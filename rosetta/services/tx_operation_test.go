@@ -74,7 +74,7 @@ func TestGetStakingOperationsFromCreateValidator(t *testing.T) {
 		},
 		Metadata: metadata,
 	})
-	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt)
+	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt, true)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
@@ -231,7 +231,7 @@ func TestGetStakingOperationsFromDelegate(t *testing.T) {
 		},
 		Metadata: metadata,
 	})
-	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt)
+	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt, true)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
@@ -365,7 +365,7 @@ func TestGetStakingOperationsFromUndelegate(t *testing.T) {
 		},
 		Metadata: metadata,
 	})
-	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt)
+	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt, true)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
@@ -426,7 +426,7 @@ func TestGetStakingOperationsFromCollectRewards(t *testing.T) {
 		},
 		Metadata: metadata,
 	})
-	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt)
+	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt, true)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
@@ -480,7 +480,7 @@ func TestGetStakingOperationsFromEditValidator(t *testing.T) {
 		},
 		Metadata: metadata,
 	})
-	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt)
+	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt, true)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
