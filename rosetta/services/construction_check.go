@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/harmony-one/harmony/core"
 	"math/big"
 
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -227,9 +228,9 @@ func (s *ConstructAPI) ConstructionMetadata(
 			)
 		}
 	} else {
-		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
-			"message": "staking operations are not supported",
-		})
+		estGasUsed,err = core.IntrinsicGas(data,false,false,
+			false,options.OperationType == common.CreateValidatorOperation)
+
 	}
 	if err != nil {
 		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
