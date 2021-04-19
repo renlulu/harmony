@@ -77,6 +77,7 @@ func unpackWrappedTransactionFromString(
 			})
 		}
 
+		var stakingTransaction *stakingTypes.StakingTransaction
 		switch stakingTx.StakingType() {
 		case stakingTypes.DirectiveCreateValidator:
 			var createValidatorMsg common.CreateValidatorOperationMetadata
@@ -116,14 +117,122 @@ func unpackWrappedTransactionFromString(
 					SlotPubKeys:        slotPubKeys.([]bls.SerializedPublicKey),
 				}
 			}
-			stakingTransaction, _ := stakingTypes.NewStakingTransaction(stakingTx.Nonce(), stakingTx.GasLimit(), stakingTx.GasPrice(), stakePayloadMaker)
-			stakingTransaction.SetRawSignature(stakingTx.RawSignatureValues())
-			tx = stakingTransaction
+			stakingTransaction, _ = stakingTypes.NewStakingTransaction(stakingTx.Nonce(), stakingTx.GasLimit(), stakingTx.GasPrice(), stakePayloadMaker)
+		case stakingTypes.DirectiveEditValidator:
+			var editValidatorMsg common.EditValidatorOperationMetadata
+			err := editValidatorMsg.UnmarshalFromInterface(formattedTx.Operations[1].Metadata)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			validatorAddr, err := common2.Bech32ToAddress(editValidatorMsg.ValidatorAddress)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			stakePayloadMaker := func() (stakingTypes.Directive, interface{}) {
+				return stakingTypes.DirectiveEditValidator, stakingTypes.EditValidator{
+					ValidatorAddress: validatorAddr,
+					Description: stakingTypes.Description{
+						Name:            editValidatorMsg.Name,
+						Identity:        editValidatorMsg.Identity,
+						Website:         editValidatorMsg.Website,
+						SecurityContact: editValidatorMsg.SecurityContact,
+						Details:         editValidatorMsg.Details,
+					},
+					CommissionRate:     &numeric.Dec{editValidatorMsg.CommissionRate},
+					MinSelfDelegation:  editValidatorMsg.MinSelfDelegation,
+					MaxTotalDelegation: editValidatorMsg.MaxTotalDelegation,
+					SlotKeyToAdd:       editValidatorMsg.SlotPubKeyToAdd,
+					SlotKeyToRemove:    editValidatorMsg.SlotPubKeyToRemove,
+				}
+			}
+			stakingTransaction, _ = stakingTypes.NewStakingTransaction(stakingTx.Nonce(), stakingTx.GasLimit(), stakingTx.GasPrice(), stakePayloadMaker)
+		case stakingTypes.DirectiveDelegate:
+			var delegateMsg common.DelegateOperationMetadata
+			err := delegateMsg.UnmarshalFromInterface(formattedTx.Operations[1].Metadata)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			validatorAddr, err := common2.Bech32ToAddress(delegateMsg.ValidatorAddress)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			delegatorAddr, err := common2.Bech32ToAddress(delegateMsg.DelegatorAddress)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			stakePayloadMaker := func() (stakingTypes.Directive, interface{}) {
+				return stakingTypes.DirectiveDelegate, stakingTypes.Delegate{
+					ValidatorAddress: validatorAddr,
+					DelegatorAddress: delegatorAddr,
+					Amount:           delegateMsg.Amount,
+				}
+			}
+			stakingTransaction, _ = stakingTypes.NewStakingTransaction(stakingTx.Nonce(), stakingTx.GasLimit(), stakingTx.GasPrice(), stakePayloadMaker)
+		case stakingTypes.DirectiveUndelegate:
+			var undelegateMsg common.UndelegateOperationMetadata
+			err := undelegateMsg.UnmarshalFromInterface(formattedTx.Operations[1].Metadata)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			validatorAddr, err := common2.Bech32ToAddress(undelegateMsg.ValidatorAddress)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			delegatorAddr, err := common2.Bech32ToAddress(undelegateMsg.DelegatorAddress)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			stakePayloadMaker := func() (stakingTypes.Directive, interface{}) {
+				return stakingTypes.DirectiveUndelegate, stakingTypes.Undelegate{
+					ValidatorAddress: validatorAddr,
+					DelegatorAddress: delegatorAddr,
+					Amount:           undelegateMsg.Amount,
+				}
+			}
+			stakingTransaction, _ = stakingTypes.NewStakingTransaction(stakingTx.Nonce(), stakingTx.GasLimit(), stakingTx.GasPrice(), stakePayloadMaker)
+		case stakingTypes.DirectiveCollectRewards:
+			var collectRewardsMsg common.CollectRewardsMetadata
+			err := collectRewardsMsg.UnmarshalFromInterface(formattedTx.Operations[1].Metadata)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			delegatorAddr, err := common2.Bech32ToAddress(collectRewardsMsg.DelegatorAddress)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			stakePayloadMaker := func() (stakingTypes.Directive, interface{}) {
+				return stakingTypes.DirectiveCollectRewards, stakingTypes.CollectRewards{
+					DelegatorAddress: delegatorAddr,
+				}
+			}
+			stakingTransaction, _ = stakingTypes.NewStakingTransaction(stakingTx.Nonce(), stakingTx.GasLimit(), stakingTx.GasPrice(), stakePayloadMaker)
 		default:
 			return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
 				"message": "staking type error",
 			})
 		}
+		stakingTransaction.SetRawSignature(stakingTx.RawSignatureValues())
+		tx = stakingTransaction
 	} else {
 		plainTx := &hmyTypes.Transaction{}
 		if err := plainTx.DecodeRLP(stream); err != nil {
