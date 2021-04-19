@@ -5,6 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/big"
+
+	"github.com/harmony-one/harmony/crypto/bls"
+	common2 "github.com/harmony-one/harmony/internal/common"
+	"github.com/harmony-one/harmony/numeric"
 
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -60,7 +65,65 @@ func unpackWrappedTransactionFromString(
 				"message": errors.WithMessage(err, "rlp encoding error for staking transaction").Error(),
 			})
 		}
-		tx = stakingTx
+		intendedReceipt := &hmyTypes.Receipt{
+			GasUsed: stakingTx.GasLimit(),
+		}
+		formattedTx, rosettaError := FormatTransaction(
+			stakingTx, intendedReceipt, &ContractInfo{ContractCode: wrappedTransaction.ContractCode}, false,
+		)
+		if rosettaError != nil {
+			return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+				"message": rosettaError,
+			})
+		}
+
+		switch stakingTx.StakingType() {
+		case stakingTypes.DirectiveCreateValidator:
+			var createValidatorMsg common.CreateValidatorOperationMetadata
+			// to solve deserialization error
+			slotPubKeys := formattedTx.Operations[1].Metadata["slotPubKeys"]
+			delete(formattedTx.Operations[1].Metadata, "slotPubKeys")
+			err := createValidatorMsg.UnmarshalFromInterface(formattedTx.Operations[1].Metadata)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			validatorAddr, err := common2.Bech32ToAddress(createValidatorMsg.ValidatorAddress)
+			if err != nil {
+				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+					"message": err,
+				})
+			}
+			stakePayloadMaker := func() (stakingTypes.Directive, interface{}) {
+				return stakingTypes.DirectiveCreateValidator, stakingTypes.CreateValidator{
+					Description: stakingTypes.Description{
+						Name:            createValidatorMsg.Name,
+						Identity:        createValidatorMsg.Identity,
+						Website:         createValidatorMsg.Website,
+						SecurityContact: createValidatorMsg.SecurityContact,
+						Details:         createValidatorMsg.Details,
+					},
+					CommissionRates: stakingTypes.CommissionRates{
+						Rate:          numeric.Dec{createValidatorMsg.CommissionRate},
+						MaxRate:       numeric.Dec{createValidatorMsg.MaxCommissionRate},
+						MaxChangeRate: numeric.Dec{createValidatorMsg.MaxChangeRate},
+					},
+					MinSelfDelegation:  createValidatorMsg.MinSelfDelegation,
+					MaxTotalDelegation: createValidatorMsg.MaxTotalDelegation,
+					ValidatorAddress:   validatorAddr,
+					Amount:             new(big.Int).SetUint64(100),
+					SlotPubKeys:        slotPubKeys.([]bls.SerializedPublicKey),
+				}
+			}
+			stakingTransaction, _ := stakingTypes.NewStakingTransaction(stakingTx.Nonce(), stakingTx.GasLimit(), stakingTx.GasPrice(), stakePayloadMaker)
+			stakingTransaction.SetRawSignature(stakingTx.RawSignatureValues())
+			tx = stakingTransaction
+		default:
+			return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+				"message": "staking type error",
+			})
+		}
 	} else {
 		plainTx := &hmyTypes.Transaction{}
 		if err := plainTx.DecodeRLP(stream); err != nil {
