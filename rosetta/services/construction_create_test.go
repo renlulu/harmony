@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"strings"
 	"testing"
@@ -274,6 +275,185 @@ func TestRecoverSenderAddressFromEditValidatorString(t *testing.T) {
 	}
 }
 
+func TestRecoverSenderAddressFromDelegateString(t *testing.T) {
+	key, err := crypto.HexToECDSA("4edef2c24995d15b0e25cbd152fb0e2c05d3b79b9c2afd134e6f59f91bf99e48")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	stakingTransaction, expectedPayload, err := stakingDelegateTransaction(key)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	address, err := stakingTransaction.SenderAddress()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if strings.ToLower(hexutil.Encode(address[:])) != "0xebcd16e8c1d8f493ba04e99a56474122d81a9c58" {
+		t.Fatal("address error")
+	}
+
+	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+DkC65TrzRbowdj0k7oE6ZpWR0Ei2BqcWJTrzRbowdj0k7oE6ZpWR0Ei2BqcWAqAhHc1lACCUgiAgIA=\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one13lx3exmpfc446vsguc5d0mtgha2ff7h5uz85pk\",\"metadata\":{\"hex_address\":\"0x8fCD1C9B614E2b5D3208E628d7eD68bF5494faF4\"}}}")
+	if rosettaError != nil {
+		t.Fatal(rosettaError)
+	}
+	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
+	stakingTx, ok := tx.(*stakingTypes.StakingTransaction)
+	if !ok {
+		t.Fatal()
+	}
+	sig, err := hexutil.Decode("0x25e199e73187c25d985859860282a57c3ac88074c6a0a626d812517d85ff7e356c9ca4d421b4aa37dd38cd60713ba47b200799f83456519933ea3269198d6b7600")
+	if err != nil {
+		t.Fatal(err)
+	}
+	stakingTx, err = stakingTx.WithSignature(signer, sig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	v, r, s := stakingTransaction.RawSignatureValues()
+	v1, r1, s1 := stakingTx.RawSignatureValues()
+	if v.String() != v1.String() || r.String() != r1.String() || s.String() != s1.String() {
+		t.Log(stakingTransaction.RawSignatureValues())
+		t.Log(stakingTx.RawSignatureValues())
+		t.Fatal("signature error")
+	}
+
+	if expectedPayload != signer.Hash(stakingTx) {
+		t.Error("payload error")
+	}
+
+	address, err = stakingTx.SenderAddress()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if strings.ToLower(hexutil.Encode(address[:])) != "0xebcd16e8c1d8f493ba04e99a56474122d81a9c58" {
+		t.Fatal("address error")
+	}
+}
+
+func TestRecoverSenderAddressFromUndelegateString(t *testing.T) {
+	key, err := crypto.HexToECDSA("4edef2c24995d15b0e25cbd152fb0e2c05d3b79b9c2afd134e6f59f91bf99e48")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	stakingTransaction, expectedPayload, err := stakingUndelegateTransaction(key)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	address, err := stakingTransaction.SenderAddress()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if strings.ToLower(hexutil.Encode(address[:])) != "0xebcd16e8c1d8f493ba04e99a56474122d81a9c58" {
+		t.Fatal("address error")
+	}
+
+	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+DkD65TrzRbowdj0k7oE6ZpWR0Ei2BqcWJTrzRbowdj0k7oE6ZpWR0Ei2BqcWAqAhHc1lACCUgiAgIA=\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one13lx3exmpfc446vsguc5d0mtgha2ff7h5uz85pk\",\"metadata\":{\"hex_address\":\"0x8fCD1C9B614E2b5D3208E628d7eD68bF5494faF4\"}}}")
+	if rosettaError != nil {
+		t.Fatal(rosettaError)
+	}
+	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
+	stakingTx, ok := tx.(*stakingTypes.StakingTransaction)
+	if !ok {
+		t.Fatal()
+	}
+	sig, err := hexutil.Decode("0x68485d11cd1db90fef8605d26b0415a900d5b9e6d87f8fd9529e7a483d30d7565631035fdd88816950ad1f591534ad437314fabc2c1d8bcfc4a164e3361fbfaa01")
+	if err != nil {
+		t.Fatal(err)
+	}
+	stakingTx, err = stakingTx.WithSignature(signer, sig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	v, r, s := stakingTransaction.RawSignatureValues()
+	v1, r1, s1 := stakingTx.RawSignatureValues()
+	if v.String() != v1.String() || r.String() != r1.String() || s.String() != s1.String() {
+		t.Log(stakingTransaction.RawSignatureValues())
+		t.Log(stakingTx.RawSignatureValues())
+		t.Fatal("signature error")
+	}
+
+	if expectedPayload != signer.Hash(stakingTx) {
+		t.Error("payload error")
+	}
+
+	address, err = stakingTx.SenderAddress()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if strings.ToLower(hexutil.Encode(address[:])) != "0xebcd16e8c1d8f493ba04e99a56474122d81a9c58" {
+		t.Fatal("address error")
+	}
+}
+
+func TestRecoverSenderAddressFromCollectRewardsString(t *testing.T) {
+	key, err := crypto.HexToECDSA("4edef2c24995d15b0e25cbd152fb0e2c05d3b79b9c2afd134e6f59f91bf99e48")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	stakingTransaction, expectedPayload, err := stakingCollectRewardsTransaction(key)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	address, err := stakingTransaction.SenderAddress()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if strings.ToLower(hexutil.Encode(address[:])) != "0xebcd16e8c1d8f493ba04e99a56474122d81a9c58" {
+		t.Fatal("address error")
+	}
+
+	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"4wTVlOvNFujB2PSTugTpmlZHQSLYGpxYgIR3NZQAglIIgICA\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one13lx3exmpfc446vsguc5d0mtgha2ff7h5uz85pk\",\"metadata\":{\"hex_address\":\"0x8fCD1C9B614E2b5D3208E628d7eD68bF5494faF4\"}}}")
+	if rosettaError != nil {
+		a, _ := json.Marshal(rosettaError)
+		fmt.Println(string(a))
+		t.Fatal(rosettaError)
+	}
+	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
+	stakingTx, ok := tx.(*stakingTypes.StakingTransaction)
+	if !ok {
+		t.Fatal()
+	}
+	sig, err := hexutil.Decode("0x13f25e40cf5cadf9ae68a318b216de52dc97ec423f581a36defccbdd31870cc26c66872f9f543246d0da7ee6b48d7e11e5034227795e80a5c1e95ac68a2a024500")
+	if err != nil {
+		t.Fatal(err)
+	}
+	stakingTx, err = stakingTx.WithSignature(signer, sig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	v, r, s := stakingTransaction.RawSignatureValues()
+	v1, r1, s1 := stakingTx.RawSignatureValues()
+	if v.String() != v1.String() || r.String() != r1.String() || s.String() != s1.String() {
+		t.Log(stakingTransaction.RawSignatureValues())
+		t.Log(stakingTx.RawSignatureValues())
+		t.Fatal("signature error")
+	}
+
+	if expectedPayload != signer.Hash(stakingTx) {
+		t.Error("payload error")
+	}
+
+	address, err = stakingTx.SenderAddress()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if strings.ToLower(hexutil.Encode(address[:])) != "0xebcd16e8c1d8f493ba04e99a56474122d81a9c58" {
+		t.Fatal("address error")
+	}
+}
+
 func stakingCreateValidatorTransaction(key *ecdsa.PrivateKey) (*stakingTypes.StakingTransaction, common2.Hash, error) {
 	var pub bls.SerializedPublicKey
 	pubb, err := hexutil.Decode("0xb9486167ab9087ab818dc4ce026edb5bf216863364c32e42df2af03c5ced1ad181e7d12f0e6dd5307a73b62247608611")
@@ -358,5 +538,77 @@ func stakingEditValidatorTransaction(key *ecdsa.PrivateKey) (*stakingTypes.Staki
 		return nil, common2.Hash{}, err
 	}
 
+	return stakingTransaction, signingPayload, nil
+}
+
+func stakingDelegateTransaction(key *ecdsa.PrivateKey) (*stakingTypes.StakingTransaction, common2.Hash, error) {
+	stakePayloadMaker := func() (stakingTypes.Directive, interface{}) {
+
+		validator, _ := common.Bech32ToAddress("one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9")
+		delegator, _ := common.Bech32ToAddress("one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9")
+		return stakingTypes.DirectiveDelegate, stakingTypes.Delegate{
+			ValidatorAddress: validator,
+			DelegatorAddress: delegator,
+			Amount:           new(big.Int).SetUint64(10),
+		}
+	}
+
+	gasPrice := big.NewInt(2000000000)
+	tx, _ := stakingTypes.NewStakingTransaction(0, 21000, gasPrice, stakePayloadMaker)
+
+	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
+	signingPayload := signer.Hash(tx)
+
+	stakingTransaction, err := stakingTypes.Sign(tx, signer, key)
+	if err != nil {
+		return nil, common2.Hash{}, err
+	}
+	return stakingTransaction, signingPayload, nil
+}
+
+func stakingUndelegateTransaction(key *ecdsa.PrivateKey) (*stakingTypes.StakingTransaction, common2.Hash, error) {
+	stakePayloadMaker := func() (stakingTypes.Directive, interface{}) {
+
+		validator, _ := common.Bech32ToAddress("one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9")
+		delegator, _ := common.Bech32ToAddress("one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9")
+		return stakingTypes.DirectiveUndelegate, stakingTypes.Undelegate{
+			ValidatorAddress: validator,
+			DelegatorAddress: delegator,
+			Amount:           new(big.Int).SetUint64(10),
+		}
+	}
+
+	gasPrice := big.NewInt(2000000000)
+	tx, _ := stakingTypes.NewStakingTransaction(0, 21000, gasPrice, stakePayloadMaker)
+
+	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
+	signingPayload := signer.Hash(tx)
+
+	stakingTransaction, err := stakingTypes.Sign(tx, signer, key)
+	if err != nil {
+		return nil, common2.Hash{}, err
+	}
+	return stakingTransaction, signingPayload, nil
+}
+
+func stakingCollectRewardsTransaction(key *ecdsa.PrivateKey) (*stakingTypes.StakingTransaction, common2.Hash, error) {
+	stakePayloadMaker := func() (stakingTypes.Directive, interface{}) {
+
+		delegator, _ := common.Bech32ToAddress("one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9")
+		return stakingTypes.DirectiveCollectRewards, stakingTypes.CollectRewards{
+			DelegatorAddress: delegator,
+		}
+	}
+
+	gasPrice := big.NewInt(2000000000)
+	tx, _ := stakingTypes.NewStakingTransaction(0, 21000, gasPrice, stakePayloadMaker)
+
+	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
+	signingPayload := signer.Hash(tx)
+
+	stakingTransaction, err := stakingTypes.Sign(tx, signer, key)
+	if err != nil {
+		return nil, common2.Hash{}, err
+	}
 	return stakingTransaction, signingPayload, nil
 }
