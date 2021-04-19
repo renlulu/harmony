@@ -120,6 +120,11 @@ func unpackWrappedTransactionFromString(
 			stakingTransaction, _ = stakingTypes.NewStakingTransaction(stakingTx.Nonce(), stakingTx.GasLimit(), stakingTx.GasPrice(), stakePayloadMaker)
 		case stakingTypes.DirectiveEditValidator:
 			var editValidatorMsg common.EditValidatorOperationMetadata
+			// to solve deserialization error
+			slotKeyToRemove := formattedTx.Operations[1].Metadata["slotPubKeyToRemove"]
+			delete(formattedTx.Operations[1].Metadata, "slotPubKeyToRemove")
+			slotKeyToAdd := formattedTx.Operations[1].Metadata["slotPubKeyToAdd"]
+			delete(formattedTx.Operations[1].Metadata, "slotPubKeyToAdd")
 			err := editValidatorMsg.UnmarshalFromInterface(formattedTx.Operations[1].Metadata)
 			if err != nil {
 				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
@@ -145,8 +150,8 @@ func unpackWrappedTransactionFromString(
 					CommissionRate:     &numeric.Dec{editValidatorMsg.CommissionRate},
 					MinSelfDelegation:  editValidatorMsg.MinSelfDelegation,
 					MaxTotalDelegation: editValidatorMsg.MaxTotalDelegation,
-					SlotKeyToAdd:       editValidatorMsg.SlotPubKeyToAdd,
-					SlotKeyToRemove:    editValidatorMsg.SlotPubKeyToRemove,
+					SlotKeyToAdd:       slotKeyToAdd.(*bls.SerializedPublicKey),
+					SlotKeyToRemove:    slotKeyToRemove.(*bls.SerializedPublicKey),
 				}
 			}
 			stakingTransaction, _ = stakingTypes.NewStakingTransaction(stakingTx.Nonce(), stakingTx.GasLimit(), stakingTx.GasPrice(), stakePayloadMaker)

@@ -156,7 +156,7 @@ func TestUnpackWrappedTransactionFromString(t *testing.T) {
 	}
 }
 
-func TestRecoverSenderAddressFromString(t *testing.T) {
+func TestRecoverSenderAddressFromCreateValidatorString(t *testing.T) {
 	key, err := crypto.HexToECDSA("4edef2c24995d15b0e25cbd152fb0e2c05d3b79b9c2afd134e6f59f91bf99e48")
 	if err != nil {
 		t.Fatal(err.Error())
@@ -215,6 +215,65 @@ func TestRecoverSenderAddressFromString(t *testing.T) {
 	}
 }
 
+func TestRecoverSenderAddressFromEditValidatorString(t *testing.T) {
+	key, err := crypto.HexToECDSA("4edef2c24995d15b0e25cbd152fb0e2c05d3b79b9c2afd134e6f59f91bf99e48")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	stakingTransaction, expectedPayload, err := stakingEditValidatorTransaction(key)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	address, err := stakingTransaction.SenderAddress()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if strings.ToLower(hexutil.Encode(address[:])) != "0xebcd16e8c1d8f493ba04e99a56474122d81a9c58" {
+		t.Fatal("address error")
+	}
+
+	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+NAB+MGU680W6MHY9JO6BOmaVkdBItganFj4OIVBbGljZYVhbGljZZFhbGljZS5oYXJtb255Lm9uZYNCb2KVRG9uJ3QgbWVzcyB3aXRoIG1lISEhyYgBY0V4XYoAAAqCC7iwuUhhZ6uQh6uBjcTOAm7bW/IWhjNkwy5C3yrwPFztGtGB59EvDm3VMHpztiJHYIYRsLlIYWerkIergY3EzgJu21vyFoYzZMMuQt8q8Dxc7RrRgefRLw5t1TB6c7YiR2CGEYCAgIR3NZQAglIIgICA\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one13lx3exmpfc446vsguc5d0mtgha2ff7h5uz85pk\",\"metadata\":{\"hex_address\":\"0x8fCD1C9B614E2b5D3208E628d7eD68bF5494faF4\"}}}")
+	if rosettaError != nil {
+		t.Fatal(rosettaError)
+	}
+	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
+	stakingTx, ok := tx.(*stakingTypes.StakingTransaction)
+	if !ok {
+		t.Fatal()
+	}
+	sig, err := hexutil.Decode("0x38a2ec0f5c2e265a0a1bde4cf4db4b0ae74fed5db80b8cbf865a65725c35ceed2a0a6ea5f3bcfc923646a1ba7063a248deff9b3866b3335420663a1ce94d6fb500")
+	if err != nil {
+		t.Fatal(err)
+	}
+	stakingTx, err = stakingTx.WithSignature(signer, sig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	v, r, s := stakingTransaction.RawSignatureValues()
+	v1, r1, s1 := stakingTx.RawSignatureValues()
+	if v.String() != v1.String() || r.String() != r1.String() || s.String() != s1.String() {
+		t.Log(stakingTransaction.RawSignatureValues())
+		t.Log(stakingTx.RawSignatureValues())
+		t.Fatal("signature error")
+	}
+
+	if expectedPayload != signer.Hash(stakingTx) {
+		t.Error("payload error")
+	}
+
+	address, err = stakingTx.SenderAddress()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if strings.ToLower(hexutil.Encode(address[:])) != "0xebcd16e8c1d8f493ba04e99a56474122d81a9c58" {
+		t.Fatal("address error")
+	}
+}
+
 func stakingCreateValidatorTransaction(key *ecdsa.PrivateKey) (*stakingTypes.StakingTransaction, common2.Hash, error) {
 	var pub bls.SerializedPublicKey
 	pubb, err := hexutil.Decode("0xb9486167ab9087ab818dc4ce026edb5bf216863364c32e42df2af03c5ced1ad181e7d12f0e6dd5307a73b62247608611")
@@ -247,6 +306,49 @@ func stakingCreateValidatorTransaction(key *ecdsa.PrivateKey) (*stakingTypes.Sta
 
 	gasPrice := big.NewInt(2000000000)
 	tx, _ := stakingTypes.NewStakingTransaction(0, 5300000, gasPrice, stakePayloadMaker)
+
+	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
+	signingPayload := signer.Hash(tx)
+
+	stakingTransaction, err := stakingTypes.Sign(tx, signer, key)
+	if err != nil {
+		return nil, common2.Hash{}, err
+	}
+
+	return stakingTransaction, signingPayload, nil
+}
+
+func stakingEditValidatorTransaction(key *ecdsa.PrivateKey) (*stakingTypes.StakingTransaction, common2.Hash, error) {
+	stakePayloadMaker := func() (stakingTypes.Directive, interface{}) {
+		var slotKeyToRemove bls.SerializedPublicKey
+		removeBytes, _ := hexutil.Decode("0xb9486167ab9087ab818dc4ce026edb5bf216863364c32e42df2af03c5ced1ad181e7d12f0e6dd5307a73b62247608611")
+		copy(slotKeyToRemove[:], removeBytes)
+
+		var slotKeyToAdd bls.SerializedPublicKey
+		addBytes, _ := hexutil.Decode("0xb9486167ab9087ab818dc4ce026edb5bf216863364c32e42df2af03c5ced1ad181e7d12f0e6dd5307a73b62247608611")
+		copy(slotKeyToAdd[:], addBytes)
+
+		validator, _ := common.Bech32ToAddress("one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9")
+
+		return stakingTypes.DirectiveEditValidator, stakingTypes.EditValidator{
+			Description: stakingTypes.Description{
+				Name:            "Alice",
+				Identity:        "alice",
+				Website:         "alice.harmony.one",
+				SecurityContact: "Bob",
+				Details:         "Don't mess with me!!!",
+			},
+			CommissionRate:     &numeric.Dec{new(big.Int).SetUint64(100000000000000000)},
+			MinSelfDelegation:  new(big.Int).SetInt64(10),
+			MaxTotalDelegation: new(big.Int).SetUint64(3000),
+			SlotKeyToRemove:    &slotKeyToRemove,
+			SlotKeyToAdd:       &slotKeyToAdd,
+			ValidatorAddress:   validator,
+		}
+	}
+
+	gasPrice := big.NewInt(2000000000)
+	tx, _ := stakingTypes.NewStakingTransaction(0, 21000, gasPrice, stakePayloadMaker)
 
 	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
 	signingPayload := signer.Hash(tx)
