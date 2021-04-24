@@ -148,7 +148,7 @@ func GetNativeOperationsFromStakingTransaction(
 	} else {
 		operations = []*types.Operation{{
 			OperationIdentifier: &types.OperationIdentifier{
-				Index: operations[0].OperationIdentifier.Index + 1,
+				Index: 0,
 			},
 			Type:     tx.StakingType().String(),
 			Status:   GetTransactionStatus(tx, receipt),
