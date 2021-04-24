@@ -18,7 +18,7 @@ func (s *ConstructAPI) ConstructionHash(
 	if err := assertValidNetworkIdentifier(request.NetworkIdentifier, s.hmy.ShardID); err != nil {
 		return nil, err
 	}
-	_, tx, rosettaError := unpackWrappedTransactionFromString(request.SignedTransaction)
+	_, tx, rosettaError := unpackWrappedTransactionFromString(request.SignedTransaction, true)
 	if rosettaError != nil {
 		return nil, rosettaError
 	}
@@ -44,7 +44,7 @@ func (s *ConstructAPI) ConstructionSubmit(
 	if err := assertValidNetworkIdentifier(request.NetworkIdentifier, s.hmy.ShardID); err != nil {
 		return nil, err
 	}
-	wrappedTransaction, tx, rosettaError := unpackWrappedTransactionFromString(request.SignedTransaction)
+	wrappedTransaction, tx, rosettaError := unpackWrappedTransactionFromString(request.SignedTransaction, true)
 	if rosettaError != nil {
 		return nil, rosettaError
 	}

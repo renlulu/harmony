@@ -18,7 +18,7 @@ func (s *ConstructAPI) ConstructionParse(
 	if err := assertValidNetworkIdentifier(request.NetworkIdentifier, s.hmy.ShardID); err != nil {
 		return nil, err
 	}
-	wrappedTransaction, tx, rosettaError := unpackWrappedTransactionFromString(request.Transaction)
+	wrappedTransaction, tx, rosettaError := unpackWrappedTransactionFromString(request.Transaction, request.Signed)
 	if rosettaError != nil {
 		return nil, rosettaError
 	}
