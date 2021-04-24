@@ -90,9 +90,13 @@ func GetNativeOperationsFromStakingTransaction(
 		return nil, rosettaError
 	}
 
-	// All operations excepts for cross-shard tx payout expend gas
-	gasExpended := new(big.Int).Mul(new(big.Int).SetUint64(receipt.GasUsed), tx.GasPrice())
-	gasOperations := newNativeOperationsWithGas(gasExpended, accountID)
+	var operations []*types.Operation
+
+	if signed {
+		// All operations excepts for cross-shard tx payout expend gas
+		gasExpended := new(big.Int).Mul(new(big.Int).SetUint64(receipt.GasUsed), tx.GasPrice())
+		operations = newNativeOperationsWithGas(gasExpended, accountID)
+	}
 
 	// Format staking message for metadata using decimal numbers (hence usage of rpcV2)
 	rpcStakingTx, err := rpcV2.NewStakingTransaction(tx, ethcommon.Hash{}, 0, 0, 0, signed)
@@ -130,9 +134,9 @@ func GetNativeOperationsFromStakingTransaction(
 		}
 	}
 
-	operations := append(gasOperations, &types.Operation{
+	operations = append(operations, &types.Operation{
 		OperationIdentifier: &types.OperationIdentifier{
-			Index: gasOperations[0].OperationIdentifier.Index + 1,
+			Index: operations[0].OperationIdentifier.Index + 1,
 		},
 		Type:     tx.StakingType().String(),
 		Status:   GetTransactionStatus(tx, receipt),
@@ -141,37 +145,39 @@ func GetNativeOperationsFromStakingTransaction(
 		Metadata: metadata,
 	})
 
-	if tx.StakingType() == stakingTypes.DirectiveCreateValidator {
-		op2 := &types.Operation{
-			OperationIdentifier: &types.OperationIdentifier{
-				Index: operations[1].OperationIdentifier.Index + 1,
-			},
-			RelatedOperations: []*types.OperationIdentifier{
-				{
-					Index: operations[1].OperationIdentifier.Index,
+	if signed {
+		if tx.StakingType() == stakingTypes.DirectiveCreateValidator {
+			op2 := &types.Operation{
+				OperationIdentifier: &types.OperationIdentifier{
+					Index: operations[1].OperationIdentifier.Index + 1,
 				},
-			},
-			Type:    tx.StakingType().String(),
-			Status:  GetTransactionStatus(tx, receipt),
-			Account: genesisID,
-			Amount: &types.Amount{
-				Value:    negativeStringValue(amount.Value),
-				Currency: &common.NativeCurrency,
-			},
-			Metadata: metadata,
+				RelatedOperations: []*types.OperationIdentifier{
+					{
+						Index: operations[1].OperationIdentifier.Index,
+					},
+				},
+				Type:    tx.StakingType().String(),
+				Status:  GetTransactionStatus(tx, receipt),
+				Account: genesisID,
+				Amount: &types.Amount{
+					Value:    negativeStringValue(amount.Value),
+					Currency: &common.NativeCurrency,
+				},
+				Metadata: metadata,
+			}
+			return append(operations, op2), nil
 		}
-		return append(operations, op2), nil
-	}
 
-	// expose delegated balance
-	if tx.StakingType() == stakingTypes.DirectiveDelegate {
-		op2 := getDelegateOperationForSubAccount(tx, operations[1])
-		return append(operations, op2), nil
-	}
+		// expose delegated balance
+		if tx.StakingType() == stakingTypes.DirectiveDelegate {
+			op2 := getDelegateOperationForSubAccount(tx, operations[1])
+			return append(operations, op2), nil
+		}
 
-	if tx.StakingType() == stakingTypes.DirectiveUndelegate {
-		op2 := getUndelegateOperationForSubAccount(tx, operations[1], receipt)
-		return append(operations, op2), nil
+		if tx.StakingType() == stakingTypes.DirectiveUndelegate {
+			op2 := getUndelegateOperationForSubAccount(tx, operations[1], receipt)
+			return append(operations, op2), nil
+		}
 	}
 
 	return operations, nil
