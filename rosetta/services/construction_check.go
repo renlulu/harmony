@@ -227,11 +227,11 @@ func (s *ConstructAPI) ConstructionMetadata(
 			estGasUsed, err = rpc.EstimateGas(
 				ctx, s.hmy, rpc.CallArgs{From: senderAddr, To: &contractAddress, Data: &data}, nil,
 			)
-			estGasUsed *= 2
 		}
 	} else {
 		estGasUsed, err = core.IntrinsicGas(data, false, false,
 			false, options.OperationType == common.CreateValidatorOperation)
+		estGasUsed *= 2
 
 	}
 	if err != nil {
