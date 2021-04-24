@@ -166,3 +166,8 @@ func negativeBigValue(num *big.Int) string {
 	}
 	return value
 }
+
+func negativeStringValue(amount string) string {
+	bigInt, _ := new(big.Int).SetString(amount, 10)
+	return negativeBigValue(bigInt)
+}

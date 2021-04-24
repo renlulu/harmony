@@ -151,9 +151,13 @@ func GetNativeOperationsFromStakingTransaction(
 					Index: operations[1].OperationIdentifier.Index,
 				},
 			},
-			Status:   GetTransactionStatus(tx, receipt),
-			Account:  genesisID,
-			Amount:   amount,
+			Type:    tx.StakingType().String(),
+			Status:  GetTransactionStatus(tx, receipt),
+			Account: genesisID,
+			Amount: &types.Amount{
+				Value:    negativeStringValue(amount.Value),
+				Currency: &common.NativeCurrency,
+			},
 			Metadata: metadata,
 		}
 		return append(operations, op2), nil
