@@ -91,6 +91,8 @@ func (s *ConstructAPI) ConstructionSubmit(
 	}
 
 	if wrappedTransaction.IsStaking {
+		fmt.Println(signedTx.GasPrice().String())
+		fmt.Println(signedTx.GasLimit())
 		if err := s.hmy.SendStakingTx(ctx, signedTx.(*stakingTypes.StakingTransaction)); err != nil {
 			return nil, common.NewError(common.StakingTransactionSubmissionError, map[string]interface{}{
 				"message": err.Error(),
