@@ -126,7 +126,7 @@ func GetNativeOperationsFromStakingTransaction(
 	if !signed {
 		op := &types.Operation{
 			OperationIdentifier: &types.OperationIdentifier{
-				Index: 1,
+				Index: 0,
 			},
 			Type:     tx.StakingType().String(),
 			Status:   GetTransactionStatus(tx, receipt),
