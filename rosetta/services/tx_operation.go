@@ -85,6 +85,11 @@ func GetNativeOperationsFromStakingTransaction(
 		return nil, rosettaError
 	}
 
+	genesisID, rosettaError := newAccountIdentifier(ethcommon.Address{})
+	if rosettaError != nil {
+		return nil, rosettaError
+	}
+
 	// All operations excepts for cross-shard tx payout expend gas
 	gasExpended := new(big.Int).Mul(new(big.Int).SetUint64(receipt.GasUsed), tx.GasPrice())
 	gasOperations := newNativeOperationsWithGas(gasExpended, accountID)
@@ -135,6 +140,24 @@ func GetNativeOperationsFromStakingTransaction(
 		Amount:   amount,
 		Metadata: metadata,
 	})
+
+	if tx.StakingType() == stakingTypes.DirectiveCreateValidator {
+		op2 := &types.Operation{
+			OperationIdentifier: &types.OperationIdentifier{
+				Index: operations[1].OperationIdentifier.Index + 1,
+			},
+			RelatedOperations: []*types.OperationIdentifier{
+				{
+					Index: operations[1].OperationIdentifier.Index,
+				},
+			},
+			Status:   GetTransactionStatus(tx, receipt),
+			Account:  genesisID,
+			Amount:   amount,
+			Metadata: metadata,
+		}
+		return append(operations, op2), nil
+	}
 
 	// expose delegated balance
 	if tx.StakingType() == stakingTypes.DirectiveDelegate {
