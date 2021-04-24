@@ -168,6 +168,10 @@ func negativeBigValue(num *big.Int) string {
 }
 
 func negativeStringValue(amount string) string {
-	bigInt, _ := new(big.Int).SetString(amount, 10)
-	return negativeBigValue(bigInt)
+	value := "0"
+	num, _ := new(big.Int).SetString(amount, 10)
+	if num != nil && num.Cmp(big.NewInt(0)) != 0 {
+		value = fmt.Sprintf("%v", new(big.Int).Abs(num))
+	}
+	return value
 }

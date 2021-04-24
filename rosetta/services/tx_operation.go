@@ -76,36 +76,15 @@ func GetNativeOperationsFromTransaction(
 func GetNativeOperationsFromStakingTransaction(
 	tx *stakingTypes.StakingTransaction, receipt *hmytypes.Receipt, signed bool,
 ) ([]*types.Operation, *types.Error) {
+
 	senderAddress, err := tx.SenderAddress()
 	if err != nil {
 		senderAddress = FormatDefaultSenderAddress
 	}
+
 	accountID, rosettaError := newAccountIdentifier(senderAddress)
 	if rosettaError != nil {
 		return nil, rosettaError
-	}
-
-	genesisID, rosettaError := newAccountIdentifier(ethcommon.Address{})
-	if rosettaError != nil {
-		return nil, rosettaError
-	}
-
-	// All operations excepts for cross-shard tx payout expend gas
-	gasExpended := new(big.Int).Mul(new(big.Int).SetUint64(receipt.GasUsed), tx.GasPrice())
-	gasOperations := newNativeOperationsWithGas(gasExpended, accountID)
-
-	// Format staking message for metadata using decimal numbers (hence usage of rpcV2)
-	rpcStakingTx, err := rpcV2.NewStakingTransaction(tx, ethcommon.Hash{}, 0, 0, 0, signed)
-	if err != nil {
-		return nil, common.NewError(common.CatchAllError, map[string]interface{}{
-			"message": err.Error(),
-		})
-	}
-	metadata, err := types.MarshalMap(rpcStakingTx.Msg)
-	if err != nil {
-		return nil, common.NewError(common.CatchAllError, map[string]interface{}{
-			"message": err.Error(),
-		})
 	}
 
 	// Set correct amount depending on staking message directive that apply balance changes INSTANTLY
@@ -129,6 +108,44 @@ func GetNativeOperationsFromStakingTransaction(
 			Currency: &common.NativeCurrency,
 		}
 	}
+
+	// Format staking message for metadata using decimal numbers (hence usage of rpcV2)
+	rpcStakingTx, err := rpcV2.NewStakingTransaction(tx, ethcommon.Hash{}, 0, 0, 0, signed)
+	if err != nil {
+		return nil, common.NewError(common.CatchAllError, map[string]interface{}{
+			"message": err.Error(),
+		})
+	}
+	metadata, err := types.MarshalMap(rpcStakingTx.Msg)
+	if err != nil {
+		return nil, common.NewError(common.CatchAllError, map[string]interface{}{
+			"message": err.Error(),
+		})
+	}
+
+	if !signed {
+		op := &types.Operation{
+			OperationIdentifier: &types.OperationIdentifier{
+				Index: 1,
+			},
+			Type:     tx.StakingType().String(),
+			Status:   GetTransactionStatus(tx, receipt),
+			Account:  accountID,
+			Amount:   amount,
+			Metadata: metadata,
+		}
+
+		return []*types.Operation{op}, nil
+	}
+
+	genesisID, rosettaError := newAccountIdentifier(ethcommon.Address{})
+	if rosettaError != nil {
+		return nil, rosettaError
+	}
+
+	// All operations excepts for cross-shard tx payout expend gas
+	gasExpended := new(big.Int).Mul(new(big.Int).SetUint64(receipt.GasUsed), tx.GasPrice())
+	gasOperations := newNativeOperationsWithGas(gasExpended, accountID)
 
 	operations := append(gasOperations, &types.Operation{
 		OperationIdentifier: &types.OperationIdentifier{
