@@ -134,16 +134,29 @@ func GetNativeOperationsFromStakingTransaction(
 		}
 	}
 
-	operations = append(operations, &types.Operation{
-		OperationIdentifier: &types.OperationIdentifier{
-			Index: operations[0].OperationIdentifier.Index + 1,
-		},
-		Type:     tx.StakingType().String(),
-		Status:   GetTransactionStatus(tx, receipt),
-		Account:  accountID,
-		Amount:   amount,
-		Metadata: metadata,
-	})
+	if len(operations) > 0 {
+		operations = append(operations, &types.Operation{
+			OperationIdentifier: &types.OperationIdentifier{
+				Index: operations[0].OperationIdentifier.Index + 1,
+			},
+			Type:     tx.StakingType().String(),
+			Status:   GetTransactionStatus(tx, receipt),
+			Account:  accountID,
+			Amount:   amount,
+			Metadata: metadata,
+		})
+	} else {
+		operations = []*types.Operation{{
+			OperationIdentifier: &types.OperationIdentifier{
+				Index: operations[0].OperationIdentifier.Index + 1,
+			},
+			Type:     tx.StakingType().String(),
+			Status:   GetTransactionStatus(tx, receipt),
+			Account:  accountID,
+			Amount:   amount,
+			Metadata: metadata,
+		}}
+	}
 
 	if signed {
 		if tx.StakingType() == stakingTypes.DirectiveCreateValidator {
