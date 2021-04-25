@@ -3,7 +3,6 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/harmony-one/harmony/crypto/bls"
@@ -11,6 +10,7 @@ import (
 	"github.com/harmony-one/harmony/numeric"
 	types2 "github.com/harmony-one/harmony/staking/types"
 	"github.com/pkg/errors"
+	"math/big"
 
 	hmyTypes "github.com/harmony-one/harmony/core/types"
 	"github.com/harmony-one/harmony/rosetta/common"
@@ -217,8 +217,8 @@ func constructCreateValidatorTransaction(
 				MaxRate:       numeric.Dec{createValidatorMsg.MaxCommissionRate},
 				MaxChangeRate: numeric.Dec{createValidatorMsg.MaxChangeRate},
 			},
-			MinSelfDelegation:  createValidatorMsg.MinSelfDelegation,
-			MaxTotalDelegation: createValidatorMsg.MaxTotalDelegation,
+			MinSelfDelegation:  new(big.Int).Mul(createValidatorMsg.MinSelfDelegation, big.NewInt(1e18)),
+			MaxTotalDelegation: new(big.Int).Mul(createValidatorMsg.MaxTotalDelegation, big.NewInt(1e18)),
 			ValidatorAddress:   validatorAddr,
 			SlotPubKeys:        slotPubKeys,
 			SlotKeySigs:        slotKeySigs,
