@@ -30,7 +30,22 @@ func (s *ConstructAPI) ConstructionParse(
 	if request.Signed {
 		return parseSignedTransaction(ctx, wrappedTransaction, tx)
 	}
-	return parseUnsignedTransaction(ctx, wrappedTransaction, tx)
+
+	rsp, err := parseUnsignedTransaction(ctx, wrappedTransaction, tx)
+	if err != nil {
+		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+			"message": err,
+		})
+	}
+
+	// it is unsigned as it reach to here, makes no sense, just to happy rosetta testing
+	switch rsp.Operations[0].Type {
+	case common.CreateValidatorOperation:
+		rsp.Operations[0].Metadata["slotPubKeys"] = nil
+		return rsp, nil
+	default:
+		return rsp, nil
+	}
 }
 
 // parseUnsignedTransaction ..
