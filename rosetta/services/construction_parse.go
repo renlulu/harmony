@@ -86,7 +86,7 @@ func parseUnsignedTransaction(
 			foundSender = true
 			op.Account = wrappedTransaction.From
 		}
-		op.Status = ""
+		// op.Status = ""
 	}
 	if !foundSender {
 		return nil, common.NewError(common.CatchAllError, map[string]interface{}{
