@@ -49,7 +49,7 @@ func FormatTransaction(
 	case *hmytypes.Transaction:
 		isStaking = false
 		plainTx := tx.(*hmytypes.Transaction)
-		operations, rosettaError = GetNativeOperationsFromTransaction(plainTx, receipt, contractInfo)
+		operations, rosettaError = GetNativeOperationsFromTransaction(plainTx, receipt, contractInfo,signed)
 		if rosettaError != nil {
 			return nil, rosettaError
 		}

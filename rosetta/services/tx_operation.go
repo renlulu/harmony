@@ -74,7 +74,7 @@ func GetNativeOperationsFromTransaction(
 		return nil, rosettaError
 	}
 
-	return append(gasOperations, txOperations...), nil
+	return append(operations, txOperations...), nil
 }
 
 // GetNativeOperationsFromStakingTransaction for all staking directives
