@@ -456,6 +456,7 @@ func NewStakingTransaction(
 			SecurityContact:    msg.Description.SecurityContact,
 			Details:            msg.Description.Details,
 			SlotPubKeys:        msg.SlotPubKeys,
+			SlotKeySigs:        msg.SlotKeySigs,
 		}
 	case staking.DirectiveEditValidator:
 		rawMsg, err := staking.RLPDecodeStakeMsg(tx.Data(), staking.DirectiveEditValidator)

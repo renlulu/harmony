@@ -42,6 +42,7 @@ func (s *ConstructAPI) ConstructionParse(
 	switch rsp.Operations[0].Type {
 	case common.CreateValidatorOperation:
 		delete(rsp.Operations[0].Metadata, "slotPubKeys")
+		delete(rsp.Operations[0].Metadata, "slotKeySigs")
 		return rsp, nil
 	default:
 		return rsp, nil
