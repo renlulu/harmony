@@ -56,7 +56,7 @@ func TestUnpackWrappedTransactionFromString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	testWrappedTx, testTx, rosettaError := unpackWrappedTransactionFromString(string(marshalledBytes))
+	testWrappedTx, testTx, rosettaError := unpackWrappedTransactionFromString(string(marshalledBytes), true)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
@@ -92,7 +92,7 @@ func TestUnpackWrappedTransactionFromString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	testWrappedTx, testStx, rosettaError := unpackWrappedTransactionFromString(string(marshalledBytes))
+	testWrappedTx, testStx, rosettaError := unpackWrappedTransactionFromString(string(marshalledBytes), true)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
@@ -106,7 +106,7 @@ func TestUnpackWrappedTransactionFromString(t *testing.T) {
 	// Test invalid marshall
 	marshalledBytesFail := marshalledBytes[:]
 	marshalledBytesFail[0] = 0x0
-	_, _, rosettaError = unpackWrappedTransactionFromString(string(marshalledBytesFail))
+	_, _, rosettaError = unpackWrappedTransactionFromString(string(marshalledBytesFail), true)
 	if rosettaError == nil {
 		t.Fatal("expected error")
 	}
@@ -117,7 +117,7 @@ func TestUnpackWrappedTransactionFromString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, rosettaError = unpackWrappedTransactionFromString(string(marshalledBytesFail))
+	_, _, rosettaError = unpackWrappedTransactionFromString(string(marshalledBytesFail), true)
 	if rosettaError == nil {
 		t.Fatal("expected error")
 	}
@@ -128,7 +128,7 @@ func TestUnpackWrappedTransactionFromString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, rosettaError = unpackWrappedTransactionFromString(string(marshalledBytesFail))
+	_, _, rosettaError = unpackWrappedTransactionFromString(string(marshalledBytesFail), true)
 	if rosettaError == nil {
 		t.Fatal("expected error")
 	}
@@ -139,7 +139,7 @@ func TestUnpackWrappedTransactionFromString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, rosettaError = unpackWrappedTransactionFromString(string(marshalledBytesFail))
+	_, _, rosettaError = unpackWrappedTransactionFromString(string(marshalledBytesFail), true)
 	if rosettaError == nil {
 		t.Fatal("expected error")
 	}
@@ -151,7 +151,7 @@ func TestUnpackWrappedTransactionFromString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, rosettaError = unpackWrappedTransactionFromString(string(marshalledBytesFail))
+	_, _, rosettaError = unpackWrappedTransactionFromString(string(marshalledBytesFail), true)
 	if rosettaError == nil {
 		t.Fatal("expected error")
 	}
@@ -167,6 +167,8 @@ func TestRecoverSenderAddressFromCreateValidatorString(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
+	fmt.Println(hexutil.Encode(expectedPayload[:]))
+
 	address, err := stakingTransaction.SenderAddress()
 	if err != nil {
 		t.Fatal(err.Error())
@@ -176,7 +178,7 @@ func TestRecoverSenderAddressFromCreateValidatorString(t *testing.T) {
 		t.Fatal("address error")
 	}
 
-	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+LWA+KWU680W6MHY9JO6BOmaVkdBItganFj4OIVBbGljZYVhbGljZZFhbGljZS5oYXJtb255Lm9uZYNCb2KVRG9uJ3QgbWVzcyB3aXRoIG1lISEh3cmIAWNFeF2KAADJiAx9cTtJ2gAAyIexorwuxQAACoILuPGwuUhhZ6uQh6uBjcTOAm7bW/IWhjNkwy5C3yrwPFztGtGB59EvDm3VMHpztiJHYIYRwGSAhHc1lACDUN8ggICA\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9\",\"metadata\":{\"hex_address\":\"0xeBCD16e8c1D8f493bA04E99a56474122D81A9c58\"}}}")
+	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+LWA+KWU680W6MHY9JO6BOmaVkdBItganFj4OIVBbGljZYVhbGljZZFhbGljZS5oYXJtb255Lm9uZYNCb2KVRG9uJ3QgbWVzcyB3aXRoIG1lISEh3cmIAWNFeF2KAADJiAx9cTtJ2gAAyIexorwuxQAACoILuPGwuUhhZ6uQh6uBjcTOAm7bW/IWhjNkwy5C3yrwPFztGtGB59EvDm3VMHpztiJHYIYRwGSAhHc1lACDUN8ggICA\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9\",\"metadata\":{\"hex_address\":\"0xeBCD16e8c1D8f493bA04E99a56474122D81A9c58\"}}}", false)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
@@ -235,7 +237,7 @@ func TestRecoverSenderAddressFromEditValidatorString(t *testing.T) {
 		t.Fatal("address error")
 	}
 
-	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+NAB+MGU680W6MHY9JO6BOmaVkdBItganFj4OIVBbGljZYVhbGljZZFhbGljZS5oYXJtb255Lm9uZYNCb2KVRG9uJ3QgbWVzcyB3aXRoIG1lISEhyYgBY0V4XYoAAAqCC7iwuUhhZ6uQh6uBjcTOAm7bW/IWhjNkwy5C3yrwPFztGtGB59EvDm3VMHpztiJHYIYRsLlIYWerkIergY3EzgJu21vyFoYzZMMuQt8q8Dxc7RrRgefRLw5t1TB6c7YiR2CGEYCAgIR3NZQAglIIgICA\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one13lx3exmpfc446vsguc5d0mtgha2ff7h5uz85pk\",\"metadata\":{\"hex_address\":\"0x8fCD1C9B614E2b5D3208E628d7eD68bF5494faF4\"}}}")
+	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+NAB+MGU680W6MHY9JO6BOmaVkdBItganFj4OIVBbGljZYVhbGljZZFhbGljZS5oYXJtb255Lm9uZYNCb2KVRG9uJ3QgbWVzcyB3aXRoIG1lISEhyYgBY0V4XYoAAAqCC7iwuUhhZ6uQh6uBjcTOAm7bW/IWhjNkwy5C3yrwPFztGtGB59EvDm3VMHpztiJHYIYRsLlIYWerkIergY3EzgJu21vyFoYzZMMuQt8q8Dxc7RrRgefRLw5t1TB6c7YiR2CGEYCAgIR3NZQAgqQQgICA\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9\",\"metadata\":{\"hex_address\":\"0xeBCD16e8c1D8f493bA04E99a56474122D81A9c58\"}}}", false)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
@@ -244,7 +246,7 @@ func TestRecoverSenderAddressFromEditValidatorString(t *testing.T) {
 	if !ok {
 		t.Fatal()
 	}
-	sig, err := hexutil.Decode("0x38a2ec0f5c2e265a0a1bde4cf4db4b0ae74fed5db80b8cbf865a65725c35ceed2a0a6ea5f3bcfc923646a1ba7063a248deff9b3866b3335420663a1ce94d6fb500")
+	sig, err := hexutil.Decode("0xf18c7a68e64f2f9f94ae0ed8975c161c3c4b1ca469dc6635ab05911fc749f60f26fc899ff8eaab60d8e924b565367f294861868ca0709d935ca74ddda91103a701")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -294,7 +296,7 @@ func TestRecoverSenderAddressFromDelegateString(t *testing.T) {
 		t.Fatal("address error")
 	}
 
-	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+DkC65TrzRbowdj0k7oE6ZpWR0Ei2BqcWJTrzRbowdj0k7oE6ZpWR0Ei2BqcWAqAhHc1lACCUgiAgIA=\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one13lx3exmpfc446vsguc5d0mtgha2ff7h5uz85pk\",\"metadata\":{\"hex_address\":\"0x8fCD1C9B614E2b5D3208E628d7eD68bF5494faF4\"}}}")
+	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+DkC65Su++69nA0xde5diT8aa65lIsefgpTrzRbowdj0k7oE6ZpWR0Ei2BqcWAqAhHc1lACCpBCAgIA=\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9\",\"metadata\":{\"hex_address\":\"0xeBCD16e8c1D8f493bA04E99a56474122D81A9c58\"}}}", false)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
@@ -303,7 +305,7 @@ func TestRecoverSenderAddressFromDelegateString(t *testing.T) {
 	if !ok {
 		t.Fatal()
 	}
-	sig, err := hexutil.Decode("0x25e199e73187c25d985859860282a57c3ac88074c6a0a626d812517d85ff7e356c9ca4d421b4aa37dd38cd60713ba47b200799f83456519933ea3269198d6b7600")
+	sig, err := hexutil.Decode("0x2e99c4d18a43a263d078d1b60423b26f83ff65714b81ceb6de362737b0960ee32309267b6cd1eb6912da4fa98ab297bec9c3f8e1ed67e8fc91614a81d33300d200")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -353,7 +355,7 @@ func TestRecoverSenderAddressFromUndelegateString(t *testing.T) {
 		t.Fatal("address error")
 	}
 
-	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+DkD65TrzRbowdj0k7oE6ZpWR0Ei2BqcWJTrzRbowdj0k7oE6ZpWR0Ei2BqcWAqAhHc1lACCUgiAgIA=\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one13lx3exmpfc446vsguc5d0mtgha2ff7h5uz85pk\",\"metadata\":{\"hex_address\":\"0x8fCD1C9B614E2b5D3208E628d7eD68bF5494faF4\"}}}")
+	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+DkD65TrzRbowdj0k7oE6ZpWR0Ei2BqcWJTrzRbowdj0k7oE6ZpWR0Ei2BqcWAqAhHc1lACCUgiAgIA=\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one13lx3exmpfc446vsguc5d0mtgha2ff7h5uz85pk\",\"metadata\":{\"hex_address\":\"0x8fCD1C9B614E2b5D3208E628d7eD68bF5494faF4\"}}}", false)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
@@ -412,7 +414,7 @@ func TestRecoverSenderAddressFromCollectRewardsString(t *testing.T) {
 		t.Fatal("address error")
 	}
 
-	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"4wTVlOvNFujB2PSTugTpmlZHQSLYGpxYgIR3NZQAglIIgICA\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one13lx3exmpfc446vsguc5d0mtgha2ff7h5uz85pk\",\"metadata\":{\"hex_address\":\"0x8fCD1C9B614E2b5D3208E628d7eD68bF5494faF4\"}}}")
+	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"4wTVlOvNFujB2PSTugTpmlZHQSLYGpxYgIR3NZQAglIIgICA\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one13lx3exmpfc446vsguc5d0mtgha2ff7h5uz85pk\",\"metadata\":{\"hex_address\":\"0x8fCD1C9B614E2b5D3208E628d7eD68bF5494faF4\"}}}", false)
 	if rosettaError != nil {
 		a, _ := json.Marshal(rosettaError)
 		fmt.Println(string(a))
@@ -528,7 +530,7 @@ func stakingEditValidatorTransaction(key *ecdsa.PrivateKey) (*stakingTypes.Staki
 	}
 
 	gasPrice := big.NewInt(2000000000)
-	tx, _ := stakingTypes.NewStakingTransaction(0, 21000, gasPrice, stakePayloadMaker)
+	tx, _ := stakingTypes.NewStakingTransaction(0, 42000, gasPrice, stakePayloadMaker)
 
 	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
 	signingPayload := signer.Hash(tx)
@@ -545,7 +547,7 @@ func stakingDelegateTransaction(key *ecdsa.PrivateKey) (*stakingTypes.StakingTra
 	stakePayloadMaker := func() (stakingTypes.Directive, interface{}) {
 
 		validator, _ := common.Bech32ToAddress("one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9")
-		delegator, _ := common.Bech32ToAddress("one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9")
+		delegator, _ := common.Bech32ToAddress("one14ma7a0vup5chtmja3yl356awv53v08uzln8ehm")
 		return stakingTypes.DirectiveDelegate, stakingTypes.Delegate{
 			ValidatorAddress: validator,
 			DelegatorAddress: delegator,
@@ -554,7 +556,7 @@ func stakingDelegateTransaction(key *ecdsa.PrivateKey) (*stakingTypes.StakingTra
 	}
 
 	gasPrice := big.NewInt(2000000000)
-	tx, _ := stakingTypes.NewStakingTransaction(0, 21000, gasPrice, stakePayloadMaker)
+	tx, _ := stakingTypes.NewStakingTransaction(0, 42000, gasPrice, stakePayloadMaker)
 
 	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
 	signingPayload := signer.Hash(tx)

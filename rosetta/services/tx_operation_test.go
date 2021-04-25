@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -62,6 +63,10 @@ func TestGetStakingOperationsFromCreateValidator(t *testing.T) {
 		Status:  hmytypes.ReceiptStatusSuccessful, // Failed staking transaction are never saved on-chain
 		GasUsed: gasUsed,
 	}
+	genesisID, rosettaError := newAccountIdentifier(ethcommon.Address{})
+	if rosettaError != nil {
+		t.Fatal(rosettaError)
+	}
 	refOperations := newNativeOperationsWithGas(gasFee, senderAccID)
 	refOperations = append(refOperations, &types.Operation{
 		OperationIdentifier: &types.OperationIdentifier{Index: 1},
@@ -74,12 +79,26 @@ func TestGetStakingOperationsFromCreateValidator(t *testing.T) {
 		},
 		Metadata: metadata,
 	})
+	refOperations = append(refOperations, &types.Operation{
+		OperationIdentifier: &types.OperationIdentifier{Index: 2},
+		RelatedOperations:   []*types.OperationIdentifier{{Index: 1}},
+		Status:              common.SuccessOperationStatus.Status,
+		Type:                tx.StakingType().String(),
+		Account:             genesisID,
+		Amount: &types.Amount{
+			Value:    negativeBigValue(tenOnes),
+			Currency: &common.NativeCurrency,
+		},
+		Metadata: metadata,
+	})
 	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt, true)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
 	if !reflect.DeepEqual(operations, refOperations) {
-		t.Errorf("Expected operations to be %v not %v", refOperations, operations)
+		operationsRaw, _ := json.Marshal(operations)
+		refOperationsRaw, _ := json.Marshal(refOperations)
+		t.Errorf("Expected operations to be:\n %v\n not\n %v", string(operationsRaw), string(refOperationsRaw))
 	}
 	if err := assertNativeOperationTypeUniquenessInvariant(operations); err != nil {
 		t.Error(err)
