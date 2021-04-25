@@ -74,7 +74,7 @@ func TestGetStakingOperationsFromCreateValidator(t *testing.T) {
 		Status:              common.SuccessOperationStatus.Status,
 		Account:             senderAccID,
 		Amount: &types.Amount{
-			Value:    negativeBigValue(tenOnes),
+			Value:    negativeBigValue(new(big.Int).Mul(tenOnes,big.NewInt(1e18))),
 			Currency: &common.NativeCurrency,
 		},
 		Metadata: metadata,
@@ -86,7 +86,7 @@ func TestGetStakingOperationsFromCreateValidator(t *testing.T) {
 		Type:                tx.StakingType().String(),
 		Account:             genesisID,
 		Amount: &types.Amount{
-			Value:    negativeBigValue(tenOnes),
+			Value:     negativeBigValue(new(big.Int).Mul(tenOnes,big.NewInt(1e18))),
 			Currency: &common.NativeCurrency,
 		},
 		Metadata: metadata,
