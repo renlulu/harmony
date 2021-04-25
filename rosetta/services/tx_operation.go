@@ -29,7 +29,7 @@ const (
 // contract creation, cross-shard sender, same-shard transfer with and without code execution.
 // Native operations only include operations that affect the native currency balance of an account.
 func GetNativeOperationsFromTransaction(
-	tx *hmytypes.Transaction, receipt *hmytypes.Receipt, contractInfo *ContractInfo,
+	tx *hmytypes.Transaction, receipt *hmytypes.Receipt, contractInfo *ContractInfo, signed bool,
 ) ([]*types.Operation, *types.Error) {
 	senderAddress, err := tx.SenderAddress()
 	if err != nil {
@@ -40,10 +40,16 @@ func GetNativeOperationsFromTransaction(
 		return nil, rosettaError
 	}
 
-	// All operations excepts for cross-shard tx payout expend gas
-	gasExpended := new(big.Int).Mul(new(big.Int).SetUint64(receipt.GasUsed), tx.GasPrice())
-	gasOperations := newNativeOperationsWithGas(gasExpended, accountID)
-	startingOpIndex := gasOperations[0].OperationIdentifier.Index + 1
+	var operations []*types.Operation
+	var startingOpIndex int64
+
+	if signed {
+		// All operations excepts for cross-shard tx payout expend gas
+		gasExpended := new(big.Int).Mul(new(big.Int).SetUint64(receipt.GasUsed), tx.GasPrice())
+		operations = newNativeOperationsWithGas(gasExpended, accountID)
+		startingOpIndex = operations[0].OperationIdentifier.Index + 1
+	}
+
 
 	// Handle based on tx type & available data.
 	var txOperations []*types.Operation
