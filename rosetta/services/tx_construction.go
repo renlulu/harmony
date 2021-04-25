@@ -222,7 +222,7 @@ func constructCreateValidatorTransaction(
 			ValidatorAddress:   validatorAddr,
 			SlotPubKeys:        slotPubKeys,
 			SlotKeySigs:        slotKeySigs,
-			Amount:             createValidatorMsg.Amount,
+			Amount:            new(big.Int).Mul(createValidatorMsg.Amount, big.NewInt(1e18)),
 		}
 	}
 
