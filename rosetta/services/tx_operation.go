@@ -634,7 +634,7 @@ func getAmountFromCreateValidatorMessage(data []byte) (*types.Amount, *types.Err
 		})
 	}
 	return &types.Amount{
-		Value:    stkMsg.Amount.String(),
+		Value:   negativeBigValue(stkMsg.Amount),
 		Currency: &common.NativeCurrency,
 	}, nil
 }
