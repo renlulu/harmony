@@ -178,7 +178,7 @@ func TestRecoverSenderAddressFromCreateValidatorString(t *testing.T) {
 		t.Fatal("address error")
 	}
 
-	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+LWA+KWU680W6MHY9JO6BOmaVkdBItganFj4OIVBbGljZYVhbGljZZFhbGljZS5oYXJtb255Lm9uZYNCb2KVRG9uJ3QgbWVzcyB3aXRoIG1lISEh3cmIAWNFeF2KAADJiAx9cTtJ2gAAyIexorwuxQAACoILuPGwuUhhZ6uQh6uBjcTOAm7bW/IWhjNkwy5C3yrwPFztGtGB59EvDm3VMHpztiJHYIYRwGSAhHc1lACDUN8ggICA\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9\",\"metadata\":{\"hex_address\":\"0xeBCD16e8c1D8f493bA04E99a56474122D81A9c58\"}}}", false)
+	_, tx, rosettaError := unpackWrappedTransactionFromString("{\"rlp_bytes\":\"+QEZgPkBCJQLWF+NrvvGijEfvUyyDZF0rRdAFvg4hUFsaWNlhWFsaWNlkWFsaWNlLmhhcm1vbnkub25lg0JvYpVEb24ndCBtZXNzIHdpdGggbWUhISHdyYgBY0V4XYoAAMmIDH1xO0naAADIh7GivC7FAAAKggu48bAwssOLExbakeBorDvYdRwJAe9sAqHVi8cSEEkYMCxu0D1YlGcdDIFtrStNMDMg8gL4YrhgaPgAtq32V7Z0kD4EcIBgkSuJO3x7UAeIgIJHVQqz4YblakTr88pIj47RpC9s7zoEvV0rK361p2eEjTE1s2LmaM5rukLHudVmbY46g75we1cI5yLFiTn+mwfBcPO3BiQUZICEdzWUAIOhvkCAgIA=\",\"is_staking\":true,\"contract_code\":\"0x\",\"from\":{\"address\":\"one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9\",\"metadata\":{\"hex_address\":\"0xeBCD16e8c1D8f493bA04E99a56474122D81A9c58\"}}}", false)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
 	}
@@ -188,7 +188,7 @@ func TestRecoverSenderAddressFromCreateValidatorString(t *testing.T) {
 	if !ok {
 		t.Fatal()
 	}
-	sig, err := hexutil.Decode("0x548b71f68f424794cf9ccd283d13288944e93bc44579d2919e23d057f14ea0b87074bfead1a4d88d7d78e6eaed729517ac2e84f6d1ed8bd23618d532038a451700")
+	sig, err := hexutil.Decode("0x3073694c4775727c84e6a395c3e16228fbc0d5e4d201b27bdec70d24f332c419679d81e6b4f9f0d7c2c2eb1eb4d4d82e8472622bdf6ab28f2f5ea6b27497662900")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -458,12 +458,19 @@ func TestRecoverSenderAddressFromCollectRewardsString(t *testing.T) {
 
 func stakingCreateValidatorTransaction(key *ecdsa.PrivateKey) (*stakingTypes.StakingTransaction, common2.Hash, error) {
 	var pub bls.SerializedPublicKey
-	pubb, err := hexutil.Decode("0xb9486167ab9087ab818dc4ce026edb5bf216863364c32e42df2af03c5ced1ad181e7d12f0e6dd5307a73b62247608611")
+	pubb, err := hexutil.Decode("0x30b2c38b1316da91e068ac3bd8751c0901ef6c02a1d58bc712104918302c6ed03d5894671d0c816dad2b4d303320f202")
 	if err != nil {
 		return nil, common2.Hash{}, err
 	}
 	copy(pub[:], pubb)
-	validator, _ := common.Bech32ToAddress("one1a0x3d6xpmr6f8wsyaxd9v36pytvp48zckswvv9")
+
+	var sig bls.SerializedSignature
+	sigg, err := hexutil.Decode("0x68f800b6adf657b674903e04708060912b893b7c7b500788808247550ab3e186e56a44ebf3ca488f8ed1a42f6cef3a04bd5d2b2b7eb5a767848d3135b362e668ce6bba42c7b9d5666d8e3a83be707b5708e722c58939fe9b07c170f3b7062414")
+	if err != nil {
+		return nil, common2.Hash{}, err
+	}
+	copy(sig[:], sigg)
+	validator, _ := common.Bech32ToAddress("one1pdv9lrdwl0rg5vglh4xtyrv3wjk3wsqket7zxy")
 	stakePayloadMaker := func() (stakingTypes.Directive, interface{}) {
 		return stakingTypes.DirectiveCreateValidator, stakingTypes.CreateValidator{
 			Description: stakingTypes.Description{
@@ -482,12 +489,13 @@ func stakingCreateValidatorTransaction(key *ecdsa.PrivateKey) (*stakingTypes.Sta
 			MaxTotalDelegation: new(big.Int).SetUint64(3000),
 			ValidatorAddress:   validator,
 			SlotPubKeys:        []bls.SerializedPublicKey{pub},
+			SlotKeySigs:        []bls.SerializedSignature{sig},
 			Amount:             new(big.Int).SetUint64(100),
 		}
 	}
 
 	gasPrice := big.NewInt(2000000000)
-	tx, _ := stakingTypes.NewStakingTransaction(0, 5300000, gasPrice, stakePayloadMaker)
+	tx, _ := stakingTypes.NewStakingTransaction(0, 10600000, gasPrice, stakePayloadMaker)
 
 	signer := stakingTypes.NewEIP155Signer(new(big.Int).SetUint64(1))
 	signingPayload := signer.Hash(tx)
