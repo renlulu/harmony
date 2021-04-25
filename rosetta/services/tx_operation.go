@@ -85,10 +85,10 @@ func GetNativeOperationsFromStakingTransaction(
 		return nil, rosettaError
 	}
 
-	genesisID, rosettaError := newAccountIdentifier(ethcommon.Address{})
-	if rosettaError != nil {
-		return nil, rosettaError
-	}
+	//genesisID, rosettaError := newAccountIdentifier(ethcommon.Address{})
+	//if rosettaError != nil {
+	//	return nil, rosettaError
+	//}
 
 	var operations []*types.Operation
 
@@ -159,27 +159,27 @@ func GetNativeOperationsFromStakingTransaction(
 	}
 
 	if signed {
-		if tx.StakingType() == stakingTypes.DirectiveCreateValidator {
-			op2 := &types.Operation{
-				OperationIdentifier: &types.OperationIdentifier{
-					Index: operations[1].OperationIdentifier.Index + 1,
-				},
-				RelatedOperations: []*types.OperationIdentifier{
-					{
-						Index: operations[1].OperationIdentifier.Index,
-					},
-				},
-				Type:    tx.StakingType().String(),
-				Status:  GetTransactionStatus(tx, receipt),
-				Account: genesisID,
-				Amount: &types.Amount{
-					Value:    positiveStringValue(amount.Value),
-					Currency: &common.NativeCurrency,
-				},
-				Metadata: metadata,
-			}
-			return append(operations, op2), nil
-		}
+		//if tx.StakingType() == stakingTypes.DirectiveCreateValidator {
+		//	op2 := &types.Operation{
+		//		OperationIdentifier: &types.OperationIdentifier{
+		//			Index: operations[1].OperationIdentifier.Index + 1,
+		//		},
+		//		RelatedOperations: []*types.OperationIdentifier{
+		//			{
+		//				Index: operations[1].OperationIdentifier.Index,
+		//			},
+		//		},
+		//		Type:    tx.StakingType().String(),
+		//		Status:  GetTransactionStatus(tx, receipt),
+		//		Account: genesisID,
+		//		Amount: &types.Amount{
+		//			Value:    positiveStringValue(amount.Value),
+		//			Currency: &common.NativeCurrency,
+		//		},
+		//		Metadata: metadata,
+		//	}
+		//	return append(operations, op2), nil
+		//}
 
 		// expose delegated balance
 		if tx.StakingType() == stakingTypes.DirectiveDelegate {

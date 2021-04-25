@@ -63,10 +63,10 @@ func TestGetStakingOperationsFromCreateValidator(t *testing.T) {
 		Status:  hmytypes.ReceiptStatusSuccessful, // Failed staking transaction are never saved on-chain
 		GasUsed: gasUsed,
 	}
-	genesisID, rosettaError := newAccountIdentifier(ethcommon.Address{})
-	if rosettaError != nil {
-		t.Fatal(rosettaError)
-	}
+	//genesisID, rosettaError := newAccountIdentifier(ethcommon.Address{})
+	//if rosettaError != nil {
+	//	t.Fatal(rosettaError)
+	//}
 	refOperations := newNativeOperationsWithGas(gasFee, senderAccID)
 	refOperations = append(refOperations, &types.Operation{
 		OperationIdentifier: &types.OperationIdentifier{Index: 1},
@@ -74,23 +74,23 @@ func TestGetStakingOperationsFromCreateValidator(t *testing.T) {
 		Status:              common.SuccessOperationStatus.Status,
 		Account:             senderAccID,
 		Amount: &types.Amount{
-			Value:    negativeBigValue(new(big.Int).Mul(tenOnes, big.NewInt(1e18))),
+			Value:    negativeBigValue(tenOnes),
 			Currency: &common.NativeCurrency,
 		},
 		Metadata: metadata,
 	})
-	refOperations = append(refOperations, &types.Operation{
-		OperationIdentifier: &types.OperationIdentifier{Index: 2},
-		RelatedOperations:   []*types.OperationIdentifier{{Index: 1}},
-		Status:              common.SuccessOperationStatus.Status,
-		Type:                tx.StakingType().String(),
-		Account:             genesisID,
-		Amount: &types.Amount{
-			Value:    negativeBigValue(new(big.Int).Mul(tenOnes, big.NewInt(1e18))),
-			Currency: &common.NativeCurrency,
-		},
-		Metadata: metadata,
-	})
+	//refOperations = append(refOperations, &types.Operation{
+	//	OperationIdentifier: &types.OperationIdentifier{Index: 2},
+	//	RelatedOperations:   []*types.OperationIdentifier{{Index: 1}},
+	//	Status:              common.SuccessOperationStatus.Status,
+	//	Type:                tx.StakingType().String(),
+	//	Account:             genesisID,
+	//	Amount: &types.Amount{
+	//		Value:    tenOnes.String(),
+	//		Currency: &common.NativeCurrency,
+	//	},
+	//	Metadata: metadata,
+	//})
 	operations, rosettaError := GetNativeOperationsFromStakingTransaction(tx, receipt, true)
 	if rosettaError != nil {
 		t.Fatal(rosettaError)
