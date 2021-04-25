@@ -173,7 +173,7 @@ func GetNativeOperationsFromStakingTransaction(
 				Status:  GetTransactionStatus(tx, receipt),
 				Account: genesisID,
 				Amount: &types.Amount{
-					Value:    negativeStringValue(amount.Value),
+					Value:    positiveStringValue(amount.Value),
 					Currency: &common.NativeCurrency,
 				},
 				Metadata: metadata,
@@ -634,7 +634,7 @@ func getAmountFromCreateValidatorMessage(data []byte) (*types.Amount, *types.Err
 		})
 	}
 	return &types.Amount{
-		Value:   negativeBigValue(stkMsg.Amount),
+		Value:    negativeBigValue(stkMsg.Amount),
 		Currency: &common.NativeCurrency,
 	}, nil
 }
