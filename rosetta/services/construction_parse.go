@@ -41,7 +41,7 @@ func (s *ConstructAPI) ConstructionParse(
 	// it is unsigned as it reach to here, makes no sense, just to happy rosetta testing
 	switch rsp.Operations[0].Type {
 	case common.CreateValidatorOperation:
-		rsp.Operations[0].Metadata["slotPubKeys"] = nil
+		delete(rsp.Operations[0].Metadata,"slotPubKeys")
 		return rsp, nil
 	default:
 		return rsp, nil
