@@ -128,6 +128,7 @@ type CreateValidatorMsg struct {
 	SecurityContact    string                    `json:"securityContact"`
 	Details            string                    `json:"details"`
 	SlotPubKeys        []bls.SerializedPublicKey `json:"slotPubKeys"`
+	SlotKeySigs        []bls.SerializedSignature `json:"slotKeySigs"`
 }
 
 // EditValidatorMsg represents a staking transaction's edit validator directive that

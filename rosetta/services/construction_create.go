@@ -87,6 +87,9 @@ func unpackWrappedTransactionFromString(
 			// to solve deserialization error
 			slotPubKeys := formattedTx.Operations[index].Metadata["slotPubKeys"]
 			delete(formattedTx.Operations[index].Metadata, "slotPubKeys")
+			slotKeySigs := formattedTx.Operations[index].Metadata["slotKeySigs"]
+			delete(formattedTx.Operations[index].Metadata, "slotKeySigs")
+
 			err := createValidatorMsg.UnmarshalFromInterface(formattedTx.Operations[index].Metadata)
 			if err != nil {
 				return nil, nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
@@ -118,6 +121,7 @@ func unpackWrappedTransactionFromString(
 					ValidatorAddress:   validatorAddr,
 					Amount:             createValidatorMsg.Amount,
 					SlotPubKeys:        slotPubKeys.([]bls.SerializedPublicKey),
+					SlotKeySigs:        slotKeySigs.([]bls.SerializedSignature),
 				}
 			}
 			stakingTransaction, _ = stakingTypes.NewStakingTransaction(stakingTx.Nonce(), stakingTx.GasLimit(), stakingTx.GasPrice(), stakePayloadMaker)

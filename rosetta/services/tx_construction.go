@@ -28,6 +28,7 @@ type TransactionMetadata struct {
 	Logs                      []*hmyTypes.Log          `json:"logs,omitempty"`
 	// SlotPubKeys SlotPubKeyToAdd SlotPubKeyToRemove are all hex representation of bls public key
 	SlotPubKeys        []string `json:"slot_pub_keys,omitempty"`
+	SlotKeySigs        []string `json:"slot_key_sigs,omitempty"`
 	SlotPubKeyToAdd    string   `json:"slot_pub_key_to_add,omitempty"`
 	SlotPubKeyToRemove string   `json:"slot_pub_key_to_remove,omitempty"`
 }
@@ -190,6 +191,18 @@ func constructCreateValidatorTransaction(
 		copy(pubKey[:], key)
 		slotPubKeys = append(slotPubKeys, pubKey)
 	}
+	var slotKeySigs []bls.SerializedSignature
+	for _, slotKeySig := range metadata.Transaction.SlotKeySigs {
+		var keySig bls.SerializedSignature
+		sig, err := hexutil.Decode(slotKeySig)
+		if err != nil {
+			return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+				"message": errors.WithMessage(err, "decode slot key sig error").Error(),
+			})
+		}
+		copy(keySig[:], sig)
+		slotKeySigs = append(slotKeySigs, keySig)
+	}
 	stakePayloadMaker := func() (types2.Directive, interface{}) {
 		return types2.DirectiveCreateValidator, types2.CreateValidator{
 			Description: types2.Description{
@@ -208,6 +221,7 @@ func constructCreateValidatorTransaction(
 			MaxTotalDelegation: createValidatorMsg.MaxTotalDelegation,
 			ValidatorAddress:   validatorAddr,
 			SlotPubKeys:        slotPubKeys,
+			SlotKeySigs:        slotKeySigs,
 			Amount:             createValidatorMsg.Amount,
 		}
 	}

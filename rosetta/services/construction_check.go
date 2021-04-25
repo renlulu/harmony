@@ -82,6 +82,11 @@ func (s *ConstructAPI) ConstructionPreprocess(
 			"message": "invalid slot public keys",
 		})
 	}
+	if request.Operations[0].Type == common.CreateValidatorOperation && len(txMetadata.SlotKeySigs) == 0 {
+		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
+			"message": "invalid slot key signatures",
+		})
+	}
 	if txMetadata.ToShardID != nil && txMetadata.FromShardID != nil &&
 		components.Type != common.NativeCrossShardTransferOperation && *txMetadata.ToShardID != *txMetadata.FromShardID {
 		return nil, common.NewError(common.InvalidTransactionConstructionError, map[string]interface{}{
