@@ -3,6 +3,8 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
+
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/harmony-one/harmony/crypto/bls"
@@ -10,7 +12,6 @@ import (
 	"github.com/harmony-one/harmony/numeric"
 	types2 "github.com/harmony-one/harmony/staking/types"
 	"github.com/pkg/errors"
-	"math/big"
 
 	hmyTypes "github.com/harmony-one/harmony/core/types"
 	"github.com/harmony-one/harmony/rosetta/common"
