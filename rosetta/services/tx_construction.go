@@ -316,7 +316,7 @@ func constructDelegateTransaction(
 		return types2.DirectiveDelegate, types2.Delegate{
 			DelegatorAddress: delegatorAddr,
 			ValidatorAddress: validatorAddr,
-			Amount:           delegaterMsg.Amount,
+			Amount:           new(big.Int).Mul(delegaterMsg.Amount, big.NewInt(1e18)),
 		}
 	}
 
