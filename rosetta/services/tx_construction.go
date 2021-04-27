@@ -351,7 +351,7 @@ func constructUndelegateTransaction(
 		return types2.DirectiveUndelegate, types2.Undelegate{
 			DelegatorAddress: delegatorAddr,
 			ValidatorAddress: validatorAddr,
-			Amount:           undelegaterMsg.Amount,
+			Amount:           new(big.Int).Mul(undelegaterMsg.Amount, big.NewInt(1e18)),
 		}
 	}
 
