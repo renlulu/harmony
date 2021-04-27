@@ -413,6 +413,9 @@ func getUndelegateOperationComponents(
 		})
 	}
 
+	// for Rosetta cli
+	components.From.SubAccount = nil
+
 	return components, nil
 
 }
